@@ -10,18 +10,20 @@ import {
   MenubarItem,
   MenubarMenu,
   MenubarSeparator,
-  MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { ArrowRight, Search, User, X } from "lucide-react";
+import { ArrowRight, LogOutIcon, Package, Search, User, X } from "lucide-react";
 import { buttonVariants } from "../ui/enhancedButton";
 import NavBar from "./NavBar";
 import { useClickOutside } from "@mantine/hooks";
 import { Input } from "../ui/input";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useClickOutside(() => setIsOpen(false));
+  const { token, logout } = useAuthStore();
+
   return (
     <header className="">
       <Wrapper className="py-3 border-b flex items-center justify-between">
@@ -29,15 +31,17 @@ const Header = () => {
         <NavBar />
 
         <div className="flex items-center gap-1">
-          <Link
-            className={buttonVariants({
-              variant: "link",
-              effect: "underline",
-            })}
-            href="/login"
-          >
-            Login
-          </Link>
+          {!token && (
+            <Link
+              className={buttonVariants({
+                variant: "link",
+                effect: "underline",
+              })}
+              href="/login"
+            >
+              Login
+            </Link>
+          )}
 
           {/* search bar */}
           <div className="relative">
@@ -85,14 +89,19 @@ const Header = () => {
                 <User className="shrink-0 size-5" />
               </MenubarTrigger>
               <MenubarContent className="">
-                <MenubarItem>
-                  New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+                <MenubarItem className="">
+                  <Link className="w-full flex items-center gap-2" href="/orders">
+                    <Package className="shrink-0 size-4" />
+                    <span className="">Orders</span>
+                  </Link>
                 </MenubarItem>
-                <MenubarItem>New Window</MenubarItem>
                 <MenubarSeparator />
-                <MenubarItem>Share</MenubarItem>
-                <MenubarSeparator />
-                <MenubarItem>Print</MenubarItem>
+                {token && (
+                  <MenubarItem onClick={logout}>
+                    <LogOutIcon className="shrnk-0 size-4" />
+                    <span className="ml-2"> Logout</span>
+                  </MenubarItem>
+                )}
               </MenubarContent>
             </MenubarMenu>
           </Menubar>

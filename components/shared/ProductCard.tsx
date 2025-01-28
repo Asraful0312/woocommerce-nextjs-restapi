@@ -7,6 +7,7 @@ import { extractPrice } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import OrderForm from "../order/OrderForm";
 import { EnhancedButton } from "../ui/enhancedButton";
+import placeholderImg from "@/app/assets/images/placeholder.png";
 
 type Props = {
   product: ProductType;
@@ -18,15 +19,12 @@ const ProductCard = ({ product }: Props) => {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <Link
-      href={`/product/${slug}`}
-      className="w-full border rounded overflow-hidden h-full flex flex-col justify-between shadow-sm relative p-3"
-    >
+    <div className="w-full border rounded overflow-hidden h-full flex flex-col justify-between shadow-sm relative p-3">
       {on_sale && <Badge className="absolute right-2 top-2 z-20">Sale</Badge>}
-      <div>
+      <Link href={`/product/${slug}`}>
         <Image
           className="w-full h-[200px] mx-auto object-cover hover:scale-110 transition-all duration-500 rounded"
-          src={images[0]?.src || ""}
+          src={images[0]?.src || placeholderImg}
           width={300}
           height={200}
           alt={images[0]?.alt || "product image"}
@@ -52,7 +50,7 @@ const ProductCard = ({ product }: Props) => {
             </p>
           )}
         </div>
-      </div>
+      </Link>
 
       <EnhancedButton
         effect="shine"
@@ -66,8 +64,9 @@ const ProductCard = ({ product }: Props) => {
         Buy Now
       </EnhancedButton>
 
+      <div onClick={(e) => e.preventDefault()}></div>
       <OrderForm product={product} open={open} setOpen={setOpen} />
-    </Link>
+    </div>
   );
 };
 

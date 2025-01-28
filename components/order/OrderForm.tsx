@@ -12,12 +12,13 @@ import { Loader2, Mail, MapPin, Phone, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Variation from "../Variation";
 import { Label } from "../ui/label";
-import { BASE_URL } from "@/lib/utils";
 import PaymentMethod from "./PaymentMethods";
 import useVariationStore from "@/stores/useVariationStore";
 import useCurrencyStore from "@/stores/useCurrencyStore";
 import { useForm } from "react-hook-form";
 import { usePlaceOrder } from "@/hooks/usePlaceOrder";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { useShippingMethods } from "@/hooks/useShippingMethods";
 
 type Props = {
   product: ProductType;
@@ -41,19 +42,15 @@ type FormData = {
 };
 
 const OrderForm = ({ product, open, setOpen }: Props) => {
-
   //hooks
   const { currency, fetchCurrency } = useCurrencyStore();
   const { selectedVariation } = useVariationStore();
   const { mutate: placeOrder, isPending } = usePlaceOrder();
 
   //states
-  const [paymentGetaways, setPaymentGetaways] = useState<
-    PaymentGateway[] | undefined
-  >([]);
-  const [shippingMethods, setShippingMethods] = useState<
-    ShippingMethod[] | undefined
-  >([]);
+  const { data: paymentGetaways } = usePaymentMethods();
+  const { data: shippingMethods } = useShippingMethods();
+
   const [selectedShipping, setSelectedShipping] =
     useState<ShippingMethod | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
@@ -87,20 +84,6 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
 
   //get shipping method and payment method
   useEffect(() => {
-    const getShippingMethod = async () => {
-      const response = await fetch(`${BASE_URL}/shipping-methods?id=0`);
-      const { shippingMethods } = await response.json();
-
-      setShippingMethods(shippingMethods);
-    };
-    const getPaymentMethods = async () => {
-      // Replace with your actual API call
-      const response = await fetch(`${BASE_URL}/payments`);
-      const { paymentMethods } = await response.json();
-      setPaymentGetaways(paymentMethods);
-    };
-    getPaymentMethods();
-    getShippingMethod();
     fetchCurrency();
   }, [fetchCurrency]);
 
@@ -199,11 +182,11 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
         className="overflow-y-scroll h-screen bg-white p-5 rounded-md w-[500px]"
       >
         {/* close button */}
-          <div className="flex justify-end">
-            <button onClick={() => setOpen(null)}>
-              <X className="size-5 shrink-0" />
-            </button>
-          </div>
+        <div className="flex justify-end">
+          <button onClick={() => setOpen(null)}>
+            <X className="size-5 shrink-0" />
+          </button>
+        </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="space-y-1">
             <Label htmlFor="name" className="leading-6">
@@ -313,7 +296,7 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
           {type === "variable" && <Variation isGrid variations={variations} />}
 
           {/* shipping method */}
-          {!virtual && !downloadable && (
+          {shippingMethods && !virtual && !downloadable && (
             <div>
               <h2>
                 Shipping Methods <span className="text-red-500 text-lg">*</span>
@@ -342,16 +325,18 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
             </div>
           )}
 
-          <PaymentMethod
-            product={product}
-            formData={formData}
-            handleInputChange={handleInputChange}
-            paymentGateways={paymentGetaways as PaymentGateway[]}
-            selectedPaymentMethod={selectedPaymentMethod as PaymentMethod}
-            register={register}
-            errors={errors}
-            setSelectedPaymentMethod={setSelectedPaymentMethod}
-          />
+          {paymentGetaways && (
+            <PaymentMethod
+              product={product}
+              formData={formData}
+              handleInputChange={handleInputChange}
+              paymentGateways={paymentGetaways as PaymentGateway[]}
+              selectedPaymentMethod={selectedPaymentMethod as PaymentMethod}
+              register={register}
+              errors={errors}
+              setSelectedPaymentMethod={setSelectedPaymentMethod}
+            />
+          )}
 
           <p>
             Total Price:{" "}

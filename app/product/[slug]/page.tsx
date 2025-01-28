@@ -54,6 +54,8 @@ const ProductDetails = ({ params }: Props) => {
     return <p className="text-center text-red-500">Error: {error.message} </p>;
   }
 
+  console.log(product);
+
   return (
     <Wrapper className="mt-14">
       <Head>
@@ -70,7 +72,7 @@ const ProductDetails = ({ params }: Props) => {
                 <Image
                   width={400}
                   height={300}
-                  className="w-full object-cover h-full rounded-md"
+                  className="w-full object-cover h-[400px] rounded-md"
                   src={img?.src || ""}
                   alt={img?.alt || ""}
                 />

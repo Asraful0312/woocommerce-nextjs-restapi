@@ -7,6 +7,7 @@ import Wrapper from "./shared/Wrapper";
 import Heading from "./shared/Heading";
 import { ProductType } from "@/lib/types";
 import { BASE_URL } from "@/lib/utils";
+import { EnhancedButton } from "./ui/enhancedButton";
 
 const fetchProducts = async (): Promise<ProductType[]> => {
   const res = await fetch(`${BASE_URL}/products`);
@@ -56,6 +57,12 @@ const RecentProducts = () => {
     <Wrapper>
       <Heading text="Recent Products" />
       {content}
+
+      <div className="flex justify-center mt-8">
+        <EnhancedButton size="sm" variant="secondary" effect="ringHover">
+          See More
+        </EnhancedButton>
+      </div>
     </Wrapper>
   );
 };

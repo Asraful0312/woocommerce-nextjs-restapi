@@ -1,10 +1,15 @@
 "use client";
 
-import { InvoiceGenerator } from "@/components/InvoiceGenerator";
+import ErrorMessage from "@/components/shared/ErrorMessage";
 import Wrapper from "@/components/shared/Wrapper";
-import { Button } from "@/components/ui/button";
+import SingleOrderSkeleton from "@/components/skeletons/SingleOrderSkeleton";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useSingleOrder } from "@/hooks/useSingleOrder";
+import { CreditCard, Package, Truck } from "lucide-react";
+import Image from "next/image";
+import placeholderImg from "@/app/assets/images/placeholder.png";
 
 type Props = {
   params: {
@@ -18,82 +23,139 @@ const SingleOrder = ({ params }: Props) => {
   console.log(order, error);
 
   if (isLoading) {
-    return;
+    return <SingleOrderSkeleton />;
+  } else if (!isLoading && error) {
+    return <ErrorMessage message={error.message} />;
+  } else if (!isLoading && !error && !order?.id) {
+    return <ErrorMessage className="text-black" message="Order not Found!" />;
   }
 
-  const generateInvoice = InvoiceGenerator({ order });
-
   return (
-    <Wrapper className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Order #{order?.order_id}</h1>
-        {order && <Button onClick={generateInvoice}>Download Invoice</Button>}
+    <Wrapper className="p-4">
+      <h1 className="text-3xl font-bold mb-6">Order Details #{order?.id}</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Order Date</p>
+                <p>
+                  {new Date(order?.date_created as string).toLocaleDateString()}
+                </p>
+              </div>
+              <Badge
+                variant={order?.status === "pending" ? "secondary" : "default"}
+              >
+                {order?.status.toUpperCase()}
+              </Badge>
+            </div>
+            <Separator className="my-4" />
+            <div className="space-y-4">
+              {order?.line_items.map((item) => (
+                <div key={item.id} className="flex items-center space-x-4">
+                  <div className="relative w-16 h-16">
+                    <Image
+                      src={item.image.src || placeholderImg}
+                      alt={item.name}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-md"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      SKU: {item.sku}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">
+                      {order?.currency_symbol}
+                      {item.total}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Qty: {item.quantity}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-4" />
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <p>Subtotal</p>
+                <p>
+                  {order?.currency_symbol}
+                  {order?.line_items[0].total}
+                </p>
+              </div>
+              {order?.shipping && order?.shipping_lines.length > 0 && (
+                <div className="flex justify-between">
+                  <p>Shipping</p>
+                  <p>
+                    {order?.currency_symbol}
+                    {order?.shipping_lines && order?.shipping_lines[0].total}
+                  </p>
+                </div>
+              )}
+              <Separator className="my-2" />
+              <div className="flex justify-between font-semibold">
+                <p>Total</p>
+                <p>
+                  {order?.currency_symbol}
+                  {order?.total}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <CreditCard className="mr-2 h-4 w-4" /> Payment Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-semibold">{order?.payment_method_title}</p>
+              <p className="text-sm text-muted-foreground">Payment pending</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Package className="mr-2 h-4 w-4" /> Billing Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>{order?.billing.first_name}</p>
+              <p>{order?.billing.address_1}</p>
+              <p>{order?.billing.email}</p>
+              <p>{order?.billing.phone}</p>
+            </CardContent>
+          </Card>
+          {order?.shipping && order?.shipping_lines.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Truck className="mr-2 h-4 w-4" /> Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{order?.shipping.first_name}</p>
+                <p>{order?.shipping.address_1}</p>
+                <p>{order?.shipping.phone}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Method: {order?.shipping_lines[0].method_title}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p>
-                <strong>Customer Name:</strong> {order?.name}
-              </p>
-              <p>
-                <strong>Customer ID:</strong> {order?.customer_id}
-              </p>
-              <p>
-                <strong>Status:</strong> {order?.status}
-              </p>
-            </div>
-            <div>
-              <p>
-                <strong>Currency:</strong> {order?.currency}
-              </p>
-              <p>
-                <strong>Total:</strong> {order?.price}
-                {order?.currency_symbol}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            <strong>Name:</strong> {order?.billing.first_name}
-          </p>
-          <p>
-            <strong>Address:</strong> {order?.billing.address_1}
-          </p>
-          <p>
-            <strong>Email:</strong> {order?.billing.email}
-          </p>
-          <p>
-            <strong>Phone:</strong> {order?.billing.phone}
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-between font-bold">
-            <span>Total:</span>
-            <span>
-              {order?.price}
-              {order?.currency_symbol}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
     </Wrapper>
   );
 };
