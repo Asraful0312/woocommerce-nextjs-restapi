@@ -21,12 +21,14 @@ export async function GET(req: NextRequest) {
   };
 
   const { searchParams } = new URL(req.url);
-  const perPage = searchParams.get("per_page") || "10";
+  const perPage = searchParams.get("per_page") || "8";
+  const page = searchParams.get("page") || "1";
   const featured = searchParams.get("feature");
 
   try {
     const params: Record<string, any> = {
       per_page: parseInt(perPage),
+      page: parseInt(page),
       status: "publish",
     };
 

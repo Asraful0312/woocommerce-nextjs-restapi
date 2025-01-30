@@ -5,9 +5,7 @@ interface InvoiceGeneratorProps {
   order: any;
 }
 
-export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
-  order,
-}) => {
+export const InvoiceGenerator = ({ order }: InvoiceGeneratorProps) => {
   const generateInvoice = () => {
     const doc = new jsPDF();
 

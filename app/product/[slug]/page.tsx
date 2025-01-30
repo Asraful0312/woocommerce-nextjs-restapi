@@ -13,11 +13,12 @@ import DOMPurify from "dompurify";
 import Variation from "@/components/Variation";
 import OrderForm from "@/components/order/OrderForm";
 import { ProductType } from "@/lib/types";
-import Head from "next/head";
 import { useSingleProduct } from "@/hooks/useSingleProduct";
 import { useState } from "react";
 import { EnhancedButton } from "@/components/ui/enhancedButton";
 import ProductDetailsSkeleton from "@/components/skeletons/ProductDetailsSkeleton";
+import AttributeSelector from "@/components/Attributes";
+import useVariationStore from "@/stores/useVariationStore";
 
 type Props = {
   params: {
@@ -28,8 +29,10 @@ type Props = {
 const ProductDetails = ({ params }: Props) => {
   const { data: product, isLoading, error } = useSingleProduct(params.slug);
   const [open, setOpen] = useState<number | null>(null);
+  const { selectedVariation } = useVariationStore();
 
   const {
+    slug,
     id,
     name,
     images,
@@ -45,6 +48,7 @@ const ProductDetails = ({ params }: Props) => {
     sku,
     categories,
     tags,
+    attributes,
   } = product || {};
 
   if (isLoading) {
@@ -58,30 +62,50 @@ const ProductDetails = ({ params }: Props) => {
 
   return (
     <Wrapper className="mt-14">
-      <Head>
-        <title>My page title</title>
-      </Head>
       <div className="flex flex-col md:flex-row gap-10">
-        <Carousel
-          opts={{ loop: true }}
-          className="w-full h-[400px] md:basis-[40%] border rounded-md"
-        >
-          <CarouselContent>
-            {images?.map((img, index) => (
-              <CarouselItem className="pl-0 h-full" key={index}>
-                <Image
-                  width={400}
-                  height={300}
-                  className="w-full object-cover h-[400px] rounded-md"
-                  src={img?.src || ""}
-                  alt={img?.alt || ""}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-2" />
-          <CarouselNext className="right-2" />
-        </Carousel>
+        {type !== "variable" &&
+        !selectedVariation?.image?.src &&
+        images &&
+        images?.length > 1 ? (
+          <Carousel
+            opts={{ loop: true }}
+            className="w-full h-[400px] md:basis-[40%] border rounded-md"
+          >
+            <CarouselContent>
+              {images?.map((img, index) => (
+                <CarouselItem className="pl-0 h-full" key={index}>
+                  <Image
+                    width={400}
+                    height={300}
+                    className="w-full object-contain h-[400px] rounded-md"
+                    src={
+                      (type === "variable" && selectedVariation?.image.src) ||
+                      img?.src ||
+                      ""
+                    }
+                    alt={img?.alt || ""}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
+        ) : (
+          <div className="w-[400px]">
+            <Image
+              width={400}
+              height={300}
+              className="object-contain h-[300px] rounded-md w-full"
+              src={
+                (type === "variable" && selectedVariation?.image.src) ||
+                (images && images[0]?.src) ||
+                ""
+              }
+              alt={slug || "product image"}
+            />
+          </div>
+        )}
 
         <div className="w-full md:basis-[60%]">
           <h2 className="font-semibold text-xl">{name}</h2>
@@ -149,6 +173,10 @@ const ProductDetails = ({ params }: Props) => {
               </span>
             </h2>
           </div>
+
+          {type !== "variable" && attributes && attributes.length > 0 && (
+            <AttributeSelector attributes={attributes} />
+          )}
 
           {/* buy button */}
           <EnhancedButton

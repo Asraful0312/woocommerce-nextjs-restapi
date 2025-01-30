@@ -1,9 +1,19 @@
 "use client";
-import React, { useState } from "react";
-import Wrapper from "./Wrapper";
-import Logo from "./Logo";
-import Link from "next/link";
 
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Menu,
+  X,
+  User,
+  Package,
+  LogOutIcon,
+  Download,
+  Search,
+  User2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Wrapper from "./Wrapper";
 import {
   Menubar,
   MenubarContent,
@@ -11,103 +21,167 @@ import {
   MenubarMenu,
   MenubarSeparator,
   MenubarTrigger,
-} from "@/components/ui/menubar";
-import { ArrowRight, LogOutIcon, Package, Search, User, X } from "lucide-react";
-import { buttonVariants } from "../ui/enhancedButton";
-import NavBar from "./NavBar";
-import { useClickOutside } from "@mantine/hooks";
-import { Input } from "../ui/input";
+} from "../ui/menubar";
+import Link from "next/link";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
+import Logo from "./Logo";
+import { useClickOutside } from "@mantine/hooks";
+import SearchBar from "../SearchBar";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchBar, setIsSearchBar] = useState(false);
   const ref = useClickOutside(() => setIsOpen(false));
-  const { token, logout } = useAuthStore();
+  const { token, logout, username, userEmail } = useAuthStore();
 
   return (
-    <header className="">
-      <Wrapper className="py-3 border-b flex items-center justify-between">
-        <Logo />
-        <NavBar />
-
-        <div className="flex items-center gap-1">
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b"
+    >
+      <Wrapper className="flex h-16 items-center justify-between relative">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-2xl font-bold"
+        >
+          <Logo />
+        </motion.div>
+        <nav className="hidden md:flex space-x-4">
+          {["Home", "Shop", "Orders", "About", "Contact"].map((item) => (
+            <motion.a
+              key={item}
+              href="#"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="text-foreground/60 hover:text-foreground"
+            >
+              {item}
+            </motion.a>
+          ))}
+        </nav>
+        <div className="flex items-center space-x-2">
+          <button onClick={() => setIsSearchBar((prev) => !prev)}>
+            {isSearchBar ? (
+              <X className="shrink-0 size-5" />
+            ) : (
+              <Search className="shrink-0 size-5" />
+            )}
+          </button>
           {!token && (
             <Link
-              className={buttonVariants({
-                variant: "link",
-                effect: "underline",
-              })}
               href="/login"
+              className={buttonVariants({
+                className: "hidden md:inline-flex",
+                variant: "link",
+                effect: "hoverUnderline",
+              })}
             >
               Login
             </Link>
           )}
-
-          {/* search bar */}
-          <div className="relative">
-            <button className="mt-2" onClick={() => setIsOpen((prev) => !prev)}>
-              {isOpen ? (
-                <X className="size-5 shrink-0" />
-              ) : (
-                <Search className="size-5 shrink-0" />
-              )}
-            </button>
-            <div
-              ref={ref}
-              className={`absolute right-0 border p-3 w-[300px] md:w-[400px] z-50 top-8 bg-white rounded transition-all duration-300 ${
-                isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
-              }`}
-            >
-              <div className="relative mb-3">
-                <Input
-                  className="peer pe-9 ps-9 shadow-none"
-                  placeholder="Search..."
-                  type="search"
-                />
-                <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
-                  <Search size={16} strokeWidth={2} />
-                </div>
-                <button
-                  className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label="Submit search"
-                  type="submit"
-                >
-                  <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
-                </button>
-              </div>
-
-              <p className="text-muted-foreground text-center">
-                No products found!
-              </p>
-            </div>
-          </div>
-
-          {/* user options */}
-          <Menubar className="shadow-none border-none rounded-full">
-            <MenubarMenu>
-              <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0">
-                <User className="shrink-0 size-5" />
-              </MenubarTrigger>
-              <MenubarContent className="">
-                <MenubarItem className="">
-                  <Link className="w-full flex items-center gap-2" href="/orders">
-                    <Package className="shrink-0 size-4" />
-                    <span className="">Orders</span>
-                  </Link>
-                </MenubarItem>
-                <MenubarSeparator />
-                {token && (
-                  <MenubarItem onClick={logout}>
-                    <LogOutIcon className="shrnk-0 size-4" />
-                    <span className="ml-2"> Logout</span>
+          {token && (
+            <Menubar className="shadow-none border-none rounded-full">
+              <MenubarMenu>
+                <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0">
+                  <User className="shrink-0 size-5" />
+                </MenubarTrigger>
+                <MenubarContent align="end" className="">
+                  <MenubarItem asChild className="">
+                    <div className="w-full flex items-start gap-2">
+                      <User2 className="shrink-0 size-4" />
+                      <p>
+                        <span className="block">{username}</span>
+                        <span className="block">{userEmail}</span>
+                      </p>
+                    </div>
                   </MenubarItem>
-                )}
-              </MenubarContent>
-            </MenubarMenu>
-          </Menubar>
+                  <MenubarItem asChild className="">
+                    <Link
+                      className="w-full flex items-center gap-2"
+                      href="/orders"
+                    >
+                      <Package className="shrink-0 size-4" />
+                      <span className="">Orders</span>
+                    </Link>
+                  </MenubarItem>
+                  <MenubarItem className="">
+                    <Link
+                      className="w-full flex items-center gap-2"
+                      href="/downloads"
+                    >
+                      <Download className="shrink-0 size-4" />
+                      <span className="">Downloads</span>
+                    </Link>
+                  </MenubarItem>
+                  <MenubarSeparator />
+                  {token && (
+                    <MenubarItem onClick={logout}>
+                      <LogOutIcon className="shrnk-0 size-4" />
+                      <span className="ml-2"> Logout</span>
+                    </MenubarItem>
+                  )}
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
+          )}
+
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
         </div>
+
+        <SearchBar isSearchBar={isSearchBar} setIsSearchBar={setIsSearchBar} />
       </Wrapper>
-    </header>
+      {isOpen && (
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="md:hidden p-4 bg-background border-t"
+        >
+          {["Home", "Shop", "Orders", "About", "Contact"].map((item) => (
+            <a
+              key={item}
+              href="#"
+              className="block py-2 text-foreground/60 hover:text-foreground"
+            >
+              {item}
+            </a>
+          ))}
+          {!token ? (
+            <Link
+              href="/login"
+              className={buttonVariants({
+                className: "w-full mt-4",
+              })}
+            >
+              Sign In
+            </Link>
+          ) : (
+            <EnhancedButton
+              className="w-full"
+              variant="secondary"
+              effect="shineHover"
+              onClick={logout}
+            >
+              Logout
+            </EnhancedButton>
+          )}
+        </motion.div>
+      )}
+    </motion.header>
   );
 };
 

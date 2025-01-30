@@ -1,6 +1,8 @@
 import FeaturedProducts from "@/components/FeaturedProducts";
 import Hero from "@/components/Hero";
+import Newsletter from "@/components/Newsletters";
 import RecentProducts from "@/components/RecentProducts";
+import Testimonials from "@/components/Testimonials";
 import React from "react";
 
 const Page = () => {
@@ -9,6 +11,8 @@ const Page = () => {
       <Hero />
       <FeaturedProducts />
       <RecentProducts />
+      <Testimonials />
+      <Newsletter />
     </div>
   );
 };

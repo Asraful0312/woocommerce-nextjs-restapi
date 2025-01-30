@@ -90,6 +90,15 @@ export type ProductType = {
   };
 };
 
+export type AttributesType = {
+  id: number;
+  name: string;
+  position: number;
+  visible: boolean;
+  variation: boolean;
+  options: string[];
+};
+
 export type ProductVariation = {
   id: number;
   type: "variation";
@@ -245,5 +254,27 @@ type Link = {
   href: string;
   targetHints?: {
     allow: string[];
+  };
+};
+
+export type DownloadableProductType = {
+  download_id: string;
+  download_url: string;
+  product_id: number;
+  product_name: string;
+  download_name: string;
+  order_id: number;
+  order_key: string;
+  downloads_remaining: string; // "10" as string, could be changed to `number` if needed
+  access_expires: string; // "never" or a date string
+  access_expires_gmt: string; // "never" or a date string
+  file: {
+    name: string;
+    file: string; // File URL
+  };
+  _links: {
+    collection: { href: string }[];
+    product: { href: string }[];
+    order: { href: string }[];
   };
 };

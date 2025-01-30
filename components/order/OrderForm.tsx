@@ -19,6 +19,11 @@ import { useForm } from "react-hook-form";
 import { usePlaceOrder } from "@/hooks/usePlaceOrder";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useShippingMethods } from "@/hooks/useShippingMethods";
+import { useAttributeStore } from "@/stores/useAttributesStore";
+import AttributeSelector from "../Attributes";
+import { useAuthStore } from "@/stores/useAuthStore";
+import SuccessPopup from "./OrderSuccessCard";
+import ShippingMethods from "./ShippingMethods";
 
 type Props = {
   product: ProductType;
@@ -45,12 +50,22 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   //hooks
   const { currency, fetchCurrency } = useCurrencyStore();
   const { selectedVariation } = useVariationStore();
-  const { mutate: placeOrder, isPending } = usePlaceOrder();
-
-  //states
   const { data: paymentGetaways } = usePaymentMethods();
   const { data: shippingMethods } = useShippingMethods();
+  const { userId } = useAuthStore();
 
+  //states
+  const { selectedAttributes } = useAttributeStore();
+  const [quantity, setQuantity] = useState(1);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const {
+    mutate: placeOrder,
+    isPending,
+    data,
+  } = usePlaceOrder({
+    showSuccessPopup,
+    setShowSuccessPopup,
+  });
   const [selectedShipping, setSelectedShipping] =
     useState<ShippingMethod | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
@@ -64,10 +79,6 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
     transaction_id: "",
   });
 
-  const userId = 0;
-
-  console.log(selectedPaymentMethod);
-
   //react hook form
   const {
     register,
@@ -76,7 +87,16 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   } = useForm<FormData>();
 
   // distruckture product object
-  const { id, type, variations, price, downloadable, virtual } = product || {};
+  const {
+    id,
+    type,
+    variations,
+    price,
+    downloadable,
+    virtual,
+    attributes,
+    sold_individually,
+  } = product || {};
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -87,8 +107,49 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
     fetchCurrency();
   }, [fetchCurrency]);
 
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10) || 1;
+
+    const stockQuantity =
+      selectedVariation?.stock_quantity ?? product.stock_quantity;
+
+    if (typeof stockQuantity !== "number") {
+      console.error("Stock quantity is invalid.");
+      return;
+    }
+
+    if (value > stockQuantity) {
+      alert("Selected quantity exceeds available stock.");
+      return;
+    }
+
+    setQuantity(value);
+  };
+
   //create order
   const onSubmit = (data: FormData) => {
+    if (virtual && downloadable && !userId) {
+      return alert("You must be logged in to order this item!");
+    }
+
+    const availableStock =
+      type === "variable"
+        ? selectedVariation?.stock_quantity
+        : product.stock_quantity;
+
+    const isInStock =
+      type === "variable"
+        ? selectedVariation?.stock_status === "instock"
+        : product.stock_status === "instock";
+
+    // Check stock quantity but allow if stock_status is "instock"
+    if (
+      !sold_individually &&
+      !isInStock &&
+      (!availableStock || quantity > availableStock)
+    ) {
+      return alert("Selected quantity exceeds available stock.");
+    }
     if (!downloadable && !virtual && !selectedShipping) {
       return alert("Please select a shipping method.");
     }
@@ -130,7 +191,11 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
                     v?.name === (selectedVariation?.name || "")
                 )?.id
               : undefined,
-          quantity: 1,
+          quantity,
+          meta_data: Object.entries(selectedAttributes).map(([key, value]) => ({
+            key,
+            value,
+          })), // ✅ Add attributes here
         },
       ],
       shipping:
@@ -173,7 +238,7 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   return (
     <div
       onClick={() => setOpen(null)}
-      className={`fixed inset-0 bg-black/55 z-30 flex items-center justify-center px-5 ${
+      className={`fixed inset-0 bg-black/55 z-[60] flex items-center justify-center px-5 ${
         open === id ? "block" : "hidden"
       }`}
     >
@@ -292,37 +357,43 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
             )}
           </div>
 
+          {product?.stock_quantity && !sold_individually && (
+            <div className="space-y-1">
+              <Label htmlFor="quantity" className="leading-6">
+                Quantity <span className="text-red-500 text-lg">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  max={
+                    selectedVariation?.stock_quantity !== null
+                      ? selectedVariation?.stock_quantity
+                      : undefined
+                  }
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                  className="peer"
+                />
+              </div>
+            </div>
+          )}
+
           {/* variations */}
           {type === "variable" && <Variation isGrid variations={variations} />}
+          {type !== "variable" && attributes && attributes.length > 0 && (
+            <AttributeSelector attributes={attributes} />
+          )}
 
           {/* shipping method */}
           {shippingMethods && !virtual && !downloadable && (
-            <div>
-              <h2>
-                Shipping Methods <span className="text-red-500 text-lg">*</span>
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {shippingMethods &&
-                  shippingMethods?.map((data) => (
-                    <EnhancedButton
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedShipping(data);
-                      }}
-                      size="sm"
-                      variant={
-                        selectedShipping?.id === data?.id
-                          ? "default"
-                          : "outline"
-                      }
-                      key={data.id}
-                    >
-                      {data?.title}: {data?.settings?.cost?.value}
-                      {` ${currency}`}
-                    </EnhancedButton>
-                  ))}
-              </div>
-            </div>
+            <ShippingMethods
+              selectedShipping={selectedShipping as ShippingMethod}
+              setSelectedShipping={setSelectedShipping}
+              currency={currency as string}
+              shippingMethods={shippingMethods}
+            />
           )}
 
           {paymentGetaways && (
@@ -340,12 +411,22 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
 
           <p>
             Total Price:{" "}
-            {selectedVariation?.price
-              ? Number(selectedVariation.price) +
-                Number(selectedShipping?.settings?.cost?.value || 0)
-              : Number(price) +
-                Number(selectedShipping?.settings?.cost?.value || 0)}{" "}
-            {currency}
+            {(() => {
+              const basePrice = selectedVariation?.price
+                ? Number(selectedVariation.price)
+                : Number(price);
+
+              const quantityValue = Number(quantity) || 1; // Ensure quantity is a valid number, default to 1
+              const shippingCost = Number(
+                selectedShipping?.settings?.cost?.value
+              );
+
+              const totalPrice =
+                basePrice * quantityValue +
+                (isNaN(shippingCost) ? 0 : shippingCost);
+
+              return `${totalPrice} ${currency}`;
+            })()}
           </p>
 
           <EnhancedButton
@@ -365,6 +446,11 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
           </EnhancedButton>
         </form>
       </div>
+      <SuccessPopup
+        isVisible={showSuccessPopup}
+        orderId={data?.order_id}
+        onClose={() => setShowSuccessPopup(false)}
+      />
     </div>
   );
 };

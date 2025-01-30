@@ -97,3 +97,26 @@ type LinkDetail = {
     allow: string[];
   };
 };
+
+export type OrderNoteType = {
+  id: number;
+  author: string;
+  date_created: string; // ISO date string
+  date_created_gmt: string; // ISO date string
+  note: string;
+  customer_note: boolean;
+  _links: {
+    self: {
+      href: string;
+      targetHints?: {
+        allow: string[];
+      };
+    }[];
+    collection: {
+      href: string;
+    }[];
+    up: {
+      href: string;
+    }[];
+  };
+};

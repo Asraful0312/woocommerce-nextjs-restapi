@@ -1,9 +1,14 @@
 import { BASE_URL } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
-export const usePlaceOrder = () => {
-  const router = useRouter();
+type Props = {
+  showSuccessPopup: boolean;
+  setShowSuccessPopup: (show: boolean) => void;
+};
+
+export const usePlaceOrder = ({
+  setShowSuccessPopup,
+}: Props) => {
 
   return useMutation({
     mutationFn: async (orderData: any) => {
@@ -21,9 +26,8 @@ export const usePlaceOrder = () => {
 
       return response.json();
     },
-    onSuccess: (data) => {
-      alert("Order placed successfully!");
-      router.push(`/order/${data?.order_id}`);
+    onSuccess: () => {
+      setShowSuccessPopup(true);
     },
     onError: (error) => {
       console.error("Error placing order:", error);

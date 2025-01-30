@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
 
 type RegisterFormInputs = {
   firstName: string;
@@ -60,110 +61,114 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex justify-center">
-      <Card className="w-[350px] mt-20">
-        <CardHeader>
-          <CardTitle>Register</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                placeholder="John"
-                {...register("firstName", {
-                  required: "First name is required",
-                })}
-              />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm">
-                  {errors.firstName.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                placeholder="Doe"
-                {...register("lastName", { required: "Last name is required" })}
-              />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Enter a valid email",
-                  },
-                })}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
+    <RedirectIfAuthenticated>
+      <div className="flex justify-center">
+        <Card className="w-[350px] mt-20">
+          <CardHeader>
+            <CardTitle>Register</CardTitle>
+            <CardDescription>Create a new account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  className="pe-9"
-                  id="password"
-                  placeholder="Password"
-                  type={isVisible ? "text" : "password"}
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
+                  id="firstName"
+                  placeholder="John"
+                  {...register("firstName", {
+                    required: "First name is required",
+                  })}
+                />
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
+                  {...register("lastName", {
+                    required: "Last name is required",
+                  })}
+                />
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Enter a valid email",
                     },
                   })}
                 />
-                <button
-                  className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center text-muted-foreground/80"
-                  type="button"
-                  onClick={() => setIsVisible((prev) => !prev)}
-                  aria-label={isVisible ? "Hide password" : "Show password"}
-                >
-                  {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-red-500 text-sm">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    className="pe-9"
+                    id="password"
+                    placeholder="Password"
+                    type={isVisible ? "text" : "password"}
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <button
+                    className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center text-muted-foreground/80"
+                    type="button"
+                    onClick={() => setIsVisible((prev) => !prev)}
+                    aria-label={isVisible ? "Hide password" : "Show password"}
+                  >
+                    {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Registering..." : "Register"}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <p className="text-sm text-center w-full">
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
-              Login
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? "Registering..." : "Register"}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter>
+            <p className="text-sm text-center w-full">
+              Already have an account?{" "}
+              <Link href="/login" className="text-blue-500 hover:underline">
+                Login
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </RedirectIfAuthenticated>
   );
 }

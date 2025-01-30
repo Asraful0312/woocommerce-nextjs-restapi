@@ -1,47 +1,37 @@
 "use client";
-import React from "react";
-import Wrapper from "./shared/Wrapper";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import HeroImg1 from "../app/assets/images/h1.png";
-import HeroImg2 from "../app/assets/images/h2.png";
-import Image from "next/image";
-import Autoplay from "embla-carousel-autoplay";
 
-const IMAGES = [HeroImg1, HeroImg2];
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import Wrapper from "./shared/Wrapper";
 
 const Hero = () => {
   return (
-    <Wrapper className="">
-      <Carousel
-        plugins={[
-          Autoplay({
-            delay: 2000,
-          }),
-        ]}
-        opts={{ loop: true }}
-        className="w-full"
-      >
-        <CarouselContent>
-          {IMAGES.map((img, index) => (
-            <CarouselItem className="pl-0" key={index}>
-              <Image
-                className="w-full object-cover"
-                src={img}
-                alt="hero image"
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="left-2" />
-        <CarouselNext className="right-2" />
-      </Carousel>
-    </Wrapper>
+    <section className="relative min-h-[40vh] lg:h-[80vh] flex items-center overflow-hidden">
+      <Wrapper className="">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-2xl px-5"
+        >
+          <h1 className="text-5xl font-bold mb-4">
+            Discover Eco-Friendly Fashion
+          </h1>
+          <p className="text-xl mb-8">
+            Shop our latest collection of sustainable clothing and accessories.
+          </p>
+          <Button size="lg">Shop Now</Button>
+        </motion.div>
+      </Wrapper>
+      <motion.img
+        src="/images.jpg"
+        alt="Eco-friendly fashion"
+        className="absolute right-20 hidden lg:block top-1/4 transform -translate-y-1/2 w-[300px] h-auto object-contain rounded-l-3xl shadow-2xl"
+        initial={{ opacity: 0, x: 100 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      />
+    </section>
   );
 };
 
