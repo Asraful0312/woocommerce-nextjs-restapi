@@ -12,7 +12,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl px-5"
+          className="max-w-2xl pt-12 lg:pt-0 px-5"
         >
           <h1 className="text-5xl font-bold mb-4">
             Discover Eco-Friendly Fashion

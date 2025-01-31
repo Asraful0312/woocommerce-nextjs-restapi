@@ -238,7 +238,7 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   return (
     <div
       onClick={() => setOpen(null)}
-      className={`fixed inset-0 bg-black/55 z-[60] flex items-center justify-center px-5 ${
+      className={`fixed inset-0 bg-black/55 py-12 z-[60] min-h-screen flex items-center justify-center px-5 ${
         open === id ? "block" : "hidden"
       }`}
     >

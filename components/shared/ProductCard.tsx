@@ -6,7 +6,7 @@ import { Badge } from "../ui/badge";
 import { extractPrice } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import OrderForm from "../order/OrderForm";
-import { EnhancedButton } from "../ui/enhancedButton";
+import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
 import placeholderImg from "@/app/assets/images/placeholder.png";
 
 type Props = {
@@ -14,13 +14,53 @@ type Props = {
 };
 
 const ProductCard = ({ product }: Props) => {
-  const { images, name, slug, price_html, on_sale, type, variations, id } =
-    product || {};
+  const {
+    type,
+    images,
+    name,
+    slug,
+    price_html,
+    on_sale,
+    button_text,
+    external_url,
+    variations,
+    id,
+    sale_price,
+    regular_price,
+  } = product || {};
   const [open, setOpen] = useState<number | null>(null);
+
+  // Function to calculate discount percentage
+  const getDiscountPercentage = (regularPrice: number, salePrice: number) => {
+    if (!regularPrice || !salePrice || regularPrice <= salePrice) return 0;
+    return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+  };
+
+  // Determine the discount, considering variations
+  let discount = getDiscountPercentage(
+    Number(regular_price),
+    Number(sale_price)
+  );
+  if (!discount && variations?.length) {
+    variations.forEach((variation) => {
+      const variationDiscount = getDiscountPercentage(
+        Number(variation.regular_price),
+        Number(variation.sale_price)
+      );
+      if (variationDiscount > discount) {
+        discount = variationDiscount;
+      }
+    });
+  }
 
   return (
     <div className="w-full border rounded overflow-hidden h-full flex flex-col justify-between shadow-sm relative p-3">
-      {on_sale && <Badge className="absolute right-2 top-2 z-20">Sale</Badge>}
+      {on_sale && (
+        <Badge className="absolute bg-red-600 hover:bg-red-600 right-2 top-2 z-20">
+          {discount > 0 ? `- ${discount}%` : `- ${0}%`} OFF
+        </Badge>
+      )}
+
       <Link href={`/product/${slug}`}>
         <Image
           className="w-full h-[200px] mx-auto object-cover hover:scale-110 transition-all duration-500 rounded"
@@ -32,11 +72,11 @@ const ProductCard = ({ product }: Props) => {
 
         <div className="pt-3">
           <h2 className="font-medium block text-center hover:underline hover:text-primary transition-all spin-out-3 line-clamp-2">
-            {name}
+            {name.substring(0, 40)}...
           </h2>
 
           {/* Price extracted from price_html */}
-          <p className="text-center  text-sm">
+          <p className="text-center text-sm">
             <span
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(extractPrice(price_html as string)),
@@ -52,19 +92,32 @@ const ProductCard = ({ product }: Props) => {
         </div>
       </Link>
 
-      <EnhancedButton
-        effect="shine"
-        size="sm"
-        onClick={(e) => {
-          e.preventDefault();
-          setOpen(id);
-        }}
-        className="w-full mt-3"
-      >
-        Buy Now
-      </EnhancedButton>
+      {type !== "external" ? (
+        <EnhancedButton
+          effect="shine"
+          size="sm"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpen(id);
+          }}
+          className="w-full mt-3"
+        >
+          Buy Now
+        </EnhancedButton>
+      ) : (
+        <a
+        target="_blank"
+          href={external_url || ""}
+          className={buttonVariants({
+            className: "w-full mt-3 text-wrap",
+            effect: "shine",
+            size: "sm"
+          })}
+        >
+          {button_text || "Buy Now"}
+        </a>
+      )}
 
-      <div onClick={(e) => e.preventDefault()}></div>
       <OrderForm product={product} open={open} setOpen={setOpen} />
     </div>
   );

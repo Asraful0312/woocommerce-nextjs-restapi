@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
     // Get the search query from the URL
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get("query");
+    const perPage = searchParams.get("per_page") || "8";
+    const page = searchParams.get("page") || "1";
 
     if (!searchQuery) {
       return NextResponse.json(
@@ -25,7 +27,8 @@ export async function GET(request: NextRequest) {
     // Fetch products matching the search query
     const { data } = await api.get("products", {
       search: searchQuery,
-      per_page: 10, // Limit results to 10
+      per_page: perPage, // Limit results to 10
+      page: page, // Fetch the next page of results
     });
 
     return NextResponse.json(data);

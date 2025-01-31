@@ -82,11 +82,135 @@ export type ProductType = {
   stock_status: string;
   has_options: boolean;
   post_password: string;
+  yoast_head_json: YoastHeadJson;
   global_unique_id: string;
   brands: { id: number; name: string; slug: string }[]; // Adjust structure if necessary
   _links: {
     self: { href: string }[];
     collection: { href: string }[];
+  };
+};
+
+export type YoastHeadJson = {
+  title: string;
+  description: string;
+  robots: {
+    index: string;
+    follow: string;
+    "max-snippet": string;
+    "max-image-preview": string;
+    "max-video-preview": string;
+  };
+  canonical: string;
+  og_locale: string;
+  og_type: string;
+  og_title: string;
+  og_description: string;
+  og_url: string;
+  og_site_name: string;
+  article_modified_time: string;
+  og_image: {
+    width: number;
+    height: number;
+    url: string;
+    type: string;
+  }[];
+  twitter_card: string;
+  twitter_misc: {
+    "Est. reading time": string;
+  };
+  schema: {
+    "@context": string;
+    "@graph": Array<
+      | {
+          "@type": string[];
+          "@id": string;
+          url: string;
+          name: string;
+          isPartOf: {
+            "@id": string;
+          };
+          primaryImageOfPage: {
+            "@id": string;
+          };
+          image: {
+            "@id": string;
+          };
+          thumbnailUrl: string;
+          datePublished: string;
+          dateModified: string;
+          description: string;
+          breadcrumb: {
+            "@id": string;
+          };
+          inLanguage: string;
+          potentialAction: Array<{
+            "@type": string;
+            target: string[];
+          }>;
+        }
+      | {
+          "@type": "ImageObject";
+          inLanguage: string;
+          "@id": string;
+          url: string;
+          contentUrl: string;
+          width: number;
+          height: number;
+        }
+      | {
+          "@type": "BreadcrumbList";
+          "@id": string;
+          itemListElement: Array<{
+            "@type": "ListItem";
+            position: number;
+            name: string;
+            item?: string;
+          }>;
+        }
+      | {
+          "@type": "WebSite";
+          "@id": string;
+          url: string;
+          name: string;
+          description: string;
+          publisher: {
+            "@id": string;
+          };
+          potentialAction: Array<{
+            "@type": string;
+            target: {
+              "@type": string;
+              urlTemplate: string;
+            };
+            "query-input": {
+              "@type": string;
+              valueRequired: boolean;
+              valueName: string;
+            };
+          }>;
+          inLanguage: string;
+        }
+      | {
+          "@type": "Organization";
+          "@id": string;
+          name: string;
+          url: string;
+          logo: {
+            "@type": "ImageObject";
+            inLanguage: string;
+            "@id": string;
+            url: string;
+            contentUrl: string;
+            width: number;
+            height: number;
+            caption: string;
+          };
+          image: {
+            "@id": string;
+          };
+        }
+    >;
   };
 };
 

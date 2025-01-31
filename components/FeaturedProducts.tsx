@@ -6,6 +6,8 @@ import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 import { BASE_URL } from "@/lib/utils";
 import { ProductType } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { buttonVariants } from "./ui/enhancedButton";
 
 const fetchProducts = async (): Promise<ProductType[]> => {
   const res = await fetch(`${BASE_URL}/products?feature=true&&limit=10`);
@@ -53,6 +55,15 @@ const FeaturedProducts = () => {
   return (
     <Wrapper className="">
       <Heading text="Featured Products" />
+      <Link
+        href={`/shop?feature=true`}
+        className={buttonVariants({
+          variant: "link",
+          effect: "hoverUnderline",
+        })}
+      >
+        View All
+      </Link>
 
       {/* render product */}
       {content}

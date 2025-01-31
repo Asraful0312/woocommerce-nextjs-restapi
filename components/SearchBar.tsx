@@ -1,15 +1,15 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { useClickOutside, useDebouncedValue } from "@mantine/hooks";
-import { ArrowRight, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+
+import { useDebouncedValue } from "@mantine/hooks";
+import { PackageSearch, SearchIcon, X } from "lucide-react";
+
 import { useQuery } from "@tanstack/react-query";
 import { ProductType } from "@/lib/types";
 import { BASE_URL } from "@/lib/utils";
-import { Skeleton } from "./ui/skeleton";
+import ProductCard from "./shared/ProductCard";
+import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 
 type Props = {
   isSearchBar: boolean;
@@ -18,16 +18,16 @@ type Props = {
 
 const fetchProducts = async (query: string): Promise<ProductType[] | null> => {
   if (!query) return [];
-  const res = await fetch(`${BASE_URL}/search?query=${query}`);
+  const res = await fetch(
+    `${BASE_URL}/search?query=${query}&per_page=4&page=1`
+  );
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json();
 };
 
 const SearchBar = ({ isSearchBar, setIsSearchBar }: Props) => {
-  const ref = useClickOutside(() => setIsSearchBar(false));
   const [value, setValue] = useState("");
   const [debounced] = useDebouncedValue(value, 300);
-  const router = useRouter();
 
   // Fetch search results when debounced value changes
   const {
@@ -40,74 +40,73 @@ const SearchBar = ({ isSearchBar, setIsSearchBar }: Props) => {
     enabled: !!debounced, // Only fetch when there is a query
   });
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    router.push(`/shop?search=${debounced}`);
-    setIsSearchBar(false);
-  };
-
   return (
     <div
-      ref={ref}
-      className={`absolute right-10 mx-auto top-14 bg-white border w-[70%] py-3 rounded-md z-[80] transition-all duration-300 ${
-        isSearchBar
-          ? "opacity-100 translate-y-3 visible"
-          : "opacity-0 translate-y-0 invisible"
-      }`}
+      className={`bg-white h-screen fixed inset-0 z-50 transition-all duration-300 border-b w-full
+           ${
+             isSearchBar
+               ? "opacity-100 visible translate-y-0"
+               : "opacity-0 invisible -translate-y-10"
+           }`}
     >
-      <form onSubmit={handleSubmit} className="px-3">
-        <div className="relative">
-          <Input
-            onChange={(e) => setValue(e.target.value)}
-            className="peer pe-9 ps-9"
-            placeholder="Search..."
-            type="search"
-            value={value}
+      <div className={`w-full px-5 max-w-[1000px] h-full overflow-y-scroll mx-auto`}>
+        <div className="flex justify-end py-8">
+          <X
+            className="size-8 border border-gray-700 p-2 rounded-full text-gray-500 shrink-0 hover:rotate-90 transition-all duration-300"
+            onClick={() => setIsSearchBar(false)}
           />
-          <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
-            <Search size={16} strokeWidth={2} />
-          </div>
-          <button
-            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Submit search"
-            type="submit"
-          >
-            <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
-          </button>
         </div>
-      </form>
 
-      {/* Search Results */}
-      {debounced && (
-        <ul className="w-full mt-4">
-          <li className="text-lg font-medium px-3 border-b">Search Results</li>
-          {error && (
-            <li className="text-red-500 px-3 py-2">{error?.message}</li>
-          )}
+        {/* search items */}
+        <div className="w-full px-5 max-w-[900px] mx-auto">
+          <form
+            className="flex items-start gap-3 border-b border-gray-800 "
+            action=""
+            onSubmit={(e) => e.preventDefault()} // Prevent form submission
+          >
+            <input
+              className="outline-none w-full pb-6 text-lg lg:text-xl font-medium"
+              type="text"
+              placeholder="Product Search"
+              value={value}
+              onChange={(e) => setValue(e.target.value)} // Update search term
+            />
+
+            <button type="submit">
+              <SearchIcon className="size-5 text-gray-400" />
+            </button>
+          </form>
+
           {isFetching ? (
-            <li className="px-3 py-2 text-gray-500 space-y-2">
-              <Skeleton className="bg-gray-300 h-4 w-full" />
-              <Skeleton className="bg-gray-300 h-4 w-full" />
-              <Skeleton className="bg-gray-300 h-4 w-full" />
-              <Skeleton className="bg-gray-300 h-4 w-full" />
-            </li>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pt-10">
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+            </div>
           ) : products && products?.length > 0 ? (
-            products?.map((product: any) => (
-              <li key={product?.id} className="w-full">
-                <Link
-                  className="py-2 px-3 w-full block hover:bg-muted text-sm hover:text-primary trnasition-all duration-300"
-                  href={`/product/${product?.slug}`}
-                  onClick={()=> setIsSearchBar(false)}
-                >
-                  {product?.name}
-                </Link>
-              </li>
-            ))
+            <div className="mb-12">
+              <h2 className="font-medium py-6 text-sm text-gray-500">
+                Search Result
+              </h2>
+
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-10`}
+              >
+                {products.map((product) => (
+                  <ProductCard key={`${product.id}-${product.name}`} product={product} />
+                ))}
+              </div>
+            </div>
           ) : (
-            <li className="px-3 py-2 text-gray-500">No products found</li>
+            <div className="flex flex-col gap-2 items-center justify-center mt-20">
+              <PackageSearch className="size-20 text-gray-300" />
+              <p className="text-center text-muted-foreground">No Products found!</p>
+            </div>
           )}
-        </ul>
-      )}
+          {error && <p className="py-12 text-red-500">{error.message}</p>}
+        </div>
+      </div>
     </div>
   );
 };

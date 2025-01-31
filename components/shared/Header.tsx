@@ -52,16 +52,21 @@ const Header = () => {
           <Logo />
         </motion.div>
         <nav className="hidden md:flex space-x-4">
-          {["Home", "Shop", "Orders", "About", "Contact"].map((item) => (
-            <motion.a
-              key={item}
-              href="#"
+          {[
+            { name: "Home", link: "/" },
+            { name: "Shop", link: "/shop" },
+            { name: "Orders", link: "/orders" },
+            { name: "About", link: "/about" },
+            { name: "Contact", link: "/contact" },
+          ].map((item) => (
+            <motion.div
+              key={item.name}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               className="text-foreground/60 hover:text-foreground"
             >
-              {item}
-            </motion.a>
+              <Link href={item.link}>{item.name}</Link>
+            </motion.div>
           ))}
         </nav>
         <div className="flex items-center space-x-2">
