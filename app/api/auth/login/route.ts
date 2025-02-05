@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import axios from "axios";
 
@@ -12,8 +13,6 @@ export async function POST(req: Request) {
         password: password,
       }
     );
-
-    console.log("res", response);
 
     return NextResponse.json({
       success: true,

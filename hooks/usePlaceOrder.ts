@@ -1,4 +1,3 @@
-import { BASE_URL } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 
 type Props = {
@@ -6,13 +5,10 @@ type Props = {
   setShowSuccessPopup: (show: boolean) => void;
 };
 
-export const usePlaceOrder = ({
-  setShowSuccessPopup,
-}: Props) => {
-
+export const usePlaceOrder = ({ setShowSuccessPopup }: Props) => {
   return useMutation({
     mutationFn: async (orderData: any) => {
-      const response = await fetch(`${BASE_URL}/order`, {
+      const response = await fetch(`/api/order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -24,7 +24,6 @@ export async function GET(
 
     const { data } = await api.get(`orders/${orderId}/notes`);
 
-    console.log("order note", data);
 
     return NextResponse.json(data);
   } catch (error: any) {

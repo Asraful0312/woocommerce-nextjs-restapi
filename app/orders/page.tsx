@@ -46,12 +46,7 @@ const OrderList = () => {
 
   if (isLoading) {
     return (
-      <Wrapper>
-        <OrderRowSkeleton />
-        <OrderRowSkeleton />
-        <OrderRowSkeleton />
-        <OrderRowSkeleton />
-        <OrderRowSkeleton />
+      <Wrapper className="mt-12">
         <OrderRowSkeleton />
       </Wrapper>
     );
@@ -62,7 +57,7 @@ const OrderList = () => {
   }
 
   if (!isLoading && !error && orders && orders?.length === 0) {
-    return <p>No orders found!</p>;
+    return <p className="text-center mt-12">No orders found!</p>;
   }
 
   return (
@@ -75,7 +70,6 @@ const OrderList = () => {
               <TableHead>Order ID</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Payment Method</TableHead>
               <TableHead>Total</TableHead>

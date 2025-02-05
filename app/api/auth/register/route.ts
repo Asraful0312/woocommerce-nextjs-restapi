@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import axios from "axios";
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
       {
         headers: {
           Authorization: `Basic ${Buffer.from(
-            `${process.env.WORDPRESS_ADMIN_USER}:${process.env.WORDPRESS_ADMIN_PASSWORD}`
+            `${process.env.WORDPRESS_ADMIN_USERNAME}:${process.env.WORDPRESS_ADMIN_PASSWORD}`
           ).toString("base64")}`,
         },
       }

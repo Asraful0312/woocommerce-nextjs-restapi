@@ -29,7 +29,19 @@ import Logo from "./Logo";
 import { useClickOutside } from "@mantine/hooks";
 import SearchBar from "../SearchBar";
 
-const Header = () => {
+type Props = {
+  logo: string;
+};
+
+const NAV_LINKS = [
+  { name: "Home", link: "/" },
+  { name: "Shop", link: "/shop" },
+  { name: "Orders", link: "/orders" },
+  { name: "About", link: "/about" },
+  { name: "Contact", link: "/contact" },
+];
+
+const Header = ({ logo }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchBar, setIsSearchBar] = useState(false);
   const ref = useClickOutside(() => setIsOpen(false));
@@ -49,16 +61,10 @@ const Header = () => {
           transition={{ delay: 0.2 }}
           className="text-2xl font-bold"
         >
-          <Logo />
+          <Logo logo={logo} />
         </motion.div>
         <nav className="hidden md:flex space-x-4">
-          {[
-            { name: "Home", link: "/" },
-            { name: "Shop", link: "/shop" },
-            { name: "Orders", link: "/orders" },
-            { name: "About", link: "/about" },
-            { name: "Contact", link: "/contact" },
-          ].map((item) => (
+          {NAV_LINKS.map((item) => (
             <motion.div
               key={item.name}
               whileHover={{ scale: 1.1 }}
@@ -92,18 +98,21 @@ const Header = () => {
           {token && (
             <Menubar className="shadow-none border-none rounded-full">
               <MenubarMenu>
-                <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0">
+                <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0 bg-transparent">
                   <User className="shrink-0 size-5" />
                 </MenubarTrigger>
                 <MenubarContent align="end" className="">
                   <MenubarItem asChild className="">
-                    <div className="w-full flex items-start gap-2">
+                    <Link
+                      href="/profile"
+                      className="w-full flex items-start gap-2"
+                    >
                       <User2 className="shrink-0 size-4" />
                       <p>
                         <span className="block">{username}</span>
                         <span className="block">{userEmail}</span>
                       </p>
-                    </div>
+                    </Link>
                   </MenubarItem>
                   <MenubarItem asChild className="">
                     <Link
@@ -156,14 +165,15 @@ const Header = () => {
           exit={{ opacity: 0, y: -20 }}
           className="md:hidden p-4 bg-background border-t"
         >
-          {["Home", "Shop", "Orders", "About", "Contact"].map((item) => (
-            <a
-              key={item}
-              href="#"
+          {NAV_LINKS.map((item) => (
+            <Link
+              key={item.name + item.link}
+              href={item.link}
+              onClick={()=> setIsOpen(false)}
               className="block py-2 text-foreground/60 hover:text-foreground"
             >
-              {item}
-            </a>
+              {item.name}
+            </Link>
           ))}
           {!token ? (
             <Link

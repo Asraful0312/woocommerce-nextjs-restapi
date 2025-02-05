@@ -7,7 +7,6 @@ import { PackageSearch, SearchIcon, X } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { ProductType } from "@/lib/types";
-import { BASE_URL } from "@/lib/utils";
 import ProductCard from "./shared/ProductCard";
 import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 
@@ -18,9 +17,7 @@ type Props = {
 
 const fetchProducts = async (query: string): Promise<ProductType[] | null> => {
   if (!query) return [];
-  const res = await fetch(
-    `${BASE_URL}/search?query=${query}&per_page=4&page=1`
-  );
+  const res = await fetch(`/api/search?query=${query}&per_page=4&page=1`);
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json();
 };
@@ -49,7 +46,9 @@ const SearchBar = ({ isSearchBar, setIsSearchBar }: Props) => {
                : "opacity-0 invisible -translate-y-10"
            }`}
     >
-      <div className={`w-full px-5 max-w-[1000px] h-full overflow-y-scroll mx-auto`}>
+      <div
+        className={`w-full px-5 max-w-[1000px] h-full overflow-y-scroll mx-auto`}
+      >
         <div className="flex justify-end py-8">
           <X
             className="size-8 border border-gray-700 p-2 rounded-full text-gray-500 shrink-0 hover:rotate-90 transition-all duration-300"
@@ -94,14 +93,22 @@ const SearchBar = ({ isSearchBar, setIsSearchBar }: Props) => {
                 className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-10`}
               >
                 {products.map((product) => (
-                  <ProductCard key={`${product.id}-${product.name}`} product={product} />
+                  <ProductCard
+                    key={`${product.id}-${product.name}`}
+                    setIsSearchBar={setIsSearchBar}
+                    product={product}
+                  />
                 ))}
               </div>
             </div>
           ) : (
             <div className="flex flex-col gap-2 items-center justify-center mt-20">
               <PackageSearch className="size-20 text-gray-300" />
-              <p className="text-center text-muted-foreground">No Products found!</p>
+              {value && (
+                <p className="text-center text-muted-foreground">
+                  No Products found!
+                </p>
+              )}
             </div>
           )}
           {error && <p className="py-12 text-red-500">{error.message}</p>}

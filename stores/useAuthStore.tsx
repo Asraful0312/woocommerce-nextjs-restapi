@@ -1,77 +1,149 @@
 import { create } from "zustand";
+import { decodeJWT } from "@/lib/decodeJWT";
 
-// Function to decode JWT token
-const decodeJWT = (token: string) => {
-  try {
-    const base64Url = token.split(".")[1]; // Extract payload part
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("Invalid token", error);
-    return null;
-  }
-};
-
-// Zustand store for authentication
-interface AuthState {
+// Define the shape of user data stored in localStorage
+interface UserData {
   token: string | null;
   userId: string | null;
   userEmail: string | null;
   username: string | null;
-  setAuth: (token: string, email: string, username: string) => void;
-  logout: () => void;
+  newUserId?: string;
+  type: string;
 }
 
-// Load initial user data from localStorage safely
-const loadUserData = () => {
-  if (typeof window !== "undefined") {
-    try {
-      return JSON.parse(localStorage.getItem("user-data") || "{}");
-    } catch (error) {
-      console.error("Error parsing localStorage user-data", error);
-      return {};
-    }
+// Enhanced AuthState interface
+interface AuthState extends UserData {
+  setAuth: (
+    token: string,
+    email: string,
+    username: string,
+    userId: string,
+    type: string
+  ) => void;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+// Enhanced localStorage handling
+const loadUserData = (): UserData => {
+  if (typeof window === "undefined") {
+    return {
+      token: null,
+      userId: null,
+      userEmail: null,
+      username: null,
+      type: "",
+    };
   }
-  return {};
+
+  try {
+    const userData = JSON.parse(localStorage.getItem("user-data") || "{}");
+    return {
+      token: userData.token || null,
+      userId: userData.userId || null,
+      userEmail: userData.userEmail || null,
+      username: userData.username || null,
+      type: userData.type || "",
+    };
+  } catch (error) {
+    console.error("Error loading user data from localStorage:", error);
+    return {
+      token: null,
+      userId: null,
+      userEmail: null,
+      username: null,
+      type: "",
+    };
+  }
 };
 
+// Enhanced auth store with better error handling
 export const useAuthStore = create<AuthState>((set) => {
   const userData = loadUserData();
 
   return {
-    token: userData?.token || null,
-    userId: userData?.userId || null,
-    userEmail: userData?.userEmail || null,
-    username: userData?.username || null,
+    ...userData,
+    isAuthenticated: !!userData.token,
+    setAuth: (
+      token: string,
+      email: string,
+      username: string,
+      userId?: string,
+      type?: string
+    ) => {
+      try {
+        if (!token) {
+          throw new Error("Token is required");
+        }
 
-    setAuth: (token: string, email: string, username: string) => {
-      const decoded = decodeJWT(token);
-      const userId = decoded?.data?.user?.id || null; // Ensure correct ID
+        // Use provided userId if available, otherwise try to decode from JWT
+        let finalUserId = userId;
+        if (!finalUserId) {
+          try {
+            const decoded = decodeJWT(token);
+            finalUserId = decoded?.data?.user?.id;
+          } catch (error) {
+            console.log("zustand login failed", error);
 
-      console.log("Decoded User ID:", userId);
+            console.warn("Failed to decode JWT, using provided userId");
+          }
+        }
 
-      set(() => {
+        const newState = {
+          token,
+          userId: finalUserId || null,
+          userEmail: email,
+          username,
+          type,
+          isAuthenticated: true,
+        };
+
+        // Update localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user-data", JSON.stringify(newState));
+        }
+
         // Update Zustand state
-        const newState = { token, userId, userEmail: email, username };
+        set(newState);
 
-        // Store updated state in localStorage
-        localStorage.setItem("user-data", JSON.stringify(newState));
-
-        return newState;
-      });
+        console.log("Authentication successful", {
+          email,
+          username,
+          userId: finalUserId,
+        });
+      } catch (error) {
+        console.error("Error setting authentication:", error);
+        set({
+          token: null,
+          userId: null,
+          userEmail: null,
+          username: null,
+          type: "",
+          isAuthenticated: false,
+        });
+      }
     },
-
     logout: () => {
-      set(() => {
+      // Clear localStorage
+      if (typeof window !== "undefined") {
         localStorage.removeItem("user-data");
-        return { token: null, userId: null, userEmail: null, username: null };
+      }
+
+      // Reset Zustand state
+      set({
+        token: null,
+        userId: null,
+        userEmail: null,
+        username: null,
+        type: "",
+        isAuthenticated: false,
       });
     },
   };
 });
+
+// Helper function to get user ID (can be used in WooCommerce operations)
+export const getUserId = () => {
+  const { userId } = useAuthStore.getState();
+  return userId;
+};

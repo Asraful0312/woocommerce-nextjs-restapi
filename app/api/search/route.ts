@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
@@ -9,10 +10,10 @@ const api = new WooCommerceRestApi({
   version: "wc/v3",
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     // Get the search query from the URL
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const searchQuery = searchParams.get("query");
     const perPage = searchParams.get("per_page") || "8";
     const page = searchParams.get("page") || "1";

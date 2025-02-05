@@ -16,10 +16,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/useAuthStore";
 import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import Image from "next/image";
 
 type LoginFormInputs = {
   email: string;
@@ -30,6 +32,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const { setAuth } = useAuthStore();
+  const { login, loading, redirect, setRedirect } = useGoogleAuth();
 
   // React Hook Form setup
   const {
@@ -46,9 +49,17 @@ export default function LoginForm() {
       return response.data;
     },
     onSuccess: ({ data }) => {
-      console.log(data);
-      setAuth(data.token, data.user_email, data.user_display_name);
-      router.push("/");
+      const type = "email";
+      setAuth(
+        data.token,
+        data.user_email,
+        data.user_display_name,
+        data?.id,
+        type
+      );
+      console.log("login data", data);
+      setRedirect(true);
+      router.replace("/");
     },
     onError: (error: any) => {
       setError("email", {
@@ -57,6 +68,7 @@ export default function LoginForm() {
           error.response?.data?.message ||
           "Login failed. Please check your credentials.",
       });
+      setRedirect(false);
     },
   });
 
@@ -69,7 +81,7 @@ export default function LoginForm() {
   return (
     <RedirectIfAuthenticated>
       <div className="flex justify-center">
-        <Card className="w-[350px] mt-20">
+        <Card className="w-[400px] mt-20 relative">
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>
@@ -131,11 +143,43 @@ export default function LoginForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || loading || redirect}
               >
                 {mutation.isPending ? "Logging in..." : "Login"}
               </Button>
+
+              <p className="text-center text-sm text-muted-foreground relative z-10">
+                <span className="bg-white p-1 rounded-full">OR</span>
+                <p className="w-full bg-gray-300 top-1/2 absolute inset-x-0 h-[1px] -z-10" />
+              </p>
+
+              <Button
+                className="w-full flex items-center justify-center gap-2"
+                disabled={mutation.isPending || loading || redirect}
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  login();
+                }}
+              >
+                <Image
+                  className="shrink-0"
+                  src="/google.png"
+                  alt="google image"
+                  width={16}
+                  height={16}
+                />
+                {loading ? "Loading..." : "Google Login"}
+              </Button>
             </form>
+
+            {/* redirect ui */}
+            {redirect && (
+              <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center">
+                <Loader2 className="size-4 animate-spin shrink-0" />
+                <p className="text-sm text-center">Redirecting to home page</p>
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <p className="text-sm text-center w-full">

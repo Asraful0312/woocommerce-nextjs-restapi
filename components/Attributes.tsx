@@ -1,3 +1,4 @@
+"use client";
 import { useAttributeStore } from "@/stores/useAttributesStore";
 import { Button } from "./ui/button";
 import { AttributesType } from "@/lib/types";
@@ -13,7 +14,7 @@ const AttributeSelector = ({
     <div className="mt-4">
       {attributes?.length > 0 &&
         attributes.map((attribute) => (
-          <div className="" key={attribute.id}>
+          <div className="" key={`${attribute.id}`}>
             <h2 className="leading-6 font-semibold mt-4">{attribute.name}</h2>
             <div className="flex items-center gap-3 flex-wrap">
               {attribute.options.map((option) => (

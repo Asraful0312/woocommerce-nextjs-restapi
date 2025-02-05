@@ -24,17 +24,6 @@ export async function GET(
 
     const { data } = await api.get(`orders/${orderId}`);
 
-    // const orderData = {
-    //   name: data.billing.first_name,
-    //   customer_id: data.customer_id,
-    //   order_id: data.id,
-    //   status: data.status,
-    //   currency: data.currency,
-    //   price: data.total,
-    //   currency_symbol: data.currency_symbol,
-    //   billing: data.billing,
-    // };
-
     return NextResponse.json(data);
   } catch (error: any) {
     console.error(

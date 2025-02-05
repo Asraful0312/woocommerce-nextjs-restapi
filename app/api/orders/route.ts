@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import jwt from "jsonwebtoken";
@@ -37,8 +38,6 @@ export async function GET(request: NextRequest) {
     const { data } = await api.get(`orders`, {
       customer: customerId, // Filter by customer ID
     });
-
-
 
     return NextResponse.json(data);
   } catch (error: any) {

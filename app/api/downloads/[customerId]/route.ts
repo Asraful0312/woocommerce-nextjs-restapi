@@ -21,8 +21,6 @@ export async function GET(
 
     const { data } = await api.get(`customers/${customerId}/downloads`);
 
-    console.log("downloads", data);
-
     return NextResponse.json(data);
   } catch (error: any) {
     console.error(

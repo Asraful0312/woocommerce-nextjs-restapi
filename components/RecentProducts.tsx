@@ -1,56 +1,38 @@
-"use client";
 import Wrapper from "./shared/Wrapper";
 import Heading from "./shared/Heading";
 import ProductCard from "./shared/ProductCard";
-import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
-import { BASE_URL } from "@/lib/utils";
 import { ProductType } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { buttonVariants } from "./ui/enhancedButton";
+import ErrorMessage from "./shared/ErrorMessage";
+import { BASE_URL } from "@/lib/utils";
 
-const fetchProducts = async (): Promise<ProductType[]> => {
-  const res = await fetch(`${BASE_URL}/products?limit=8`);
-  if (!res.ok) throw new Error("Failed to fetch products");
-  const { products } = await res.json();
-  return products;
+const getFeatureProducts = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/products?recent=true&&per_page=8`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      next: {
+        revalidate: 60,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch products");
+    const { products } = await res.json();
+    return products;
+  } catch (error) {
+    console.log("feature product error", error);
+    return null;
+  }
 };
 
-const RecentProducts = () => {
-  const {
-    data: products,
-    error,
-    isLoading,
-  } = useQuery({
-    queryKey: ["recentProducts"],
-    queryFn: fetchProducts,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-  let content;
-  if (isLoading) {
-    content = (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <ProductCardSkeleton />
-        <ProductCardSkeleton />
-        <ProductCardSkeleton />
-        <ProductCardSkeleton />
-      </div>
-    );
-  } else if (!isLoading && error) {
-    content = <p className="text-center">An error occurred: {error.message}</p>;
-  } else if (!isLoading && !error && products?.length === 0) {
-    content = <p className="text-center">No featured products found.</p>;
-  } else if (!isLoading && !error && products && products?.length > 0) {
-    content = (
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products?.map((product) => (
-          <div key={product?.name}>
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
-    );
-  }
+const FeaturedProducts = async () => {
+  const products = await getFeatureProducts();
+
+  if (!products)
+    return <ErrorMessage className="text-black" message="No products found" />;
 
   return (
     <Wrapper className="">
@@ -64,10 +46,17 @@ const RecentProducts = () => {
       >
         View All
       </Link>
+
       {/* render product */}
-      {content}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products?.map((product: ProductType) => (
+          <div key={product?.id + product?.slug}>
+            <ProductCard product={product} />
+          </div>
+        ))}
+      </div>
     </Wrapper>
   );
 };
 
-export default RecentProducts;
+export default FeaturedProducts;

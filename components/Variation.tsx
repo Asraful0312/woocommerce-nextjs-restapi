@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "./ui/button";
 import { ProductVariation } from "@/lib/types";
 import useCurrencyStore from "@/stores/useCurrencyStore";

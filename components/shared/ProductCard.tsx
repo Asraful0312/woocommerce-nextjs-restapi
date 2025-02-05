@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import React, { useState } from "react";
 import Link from "next/link";
@@ -11,9 +12,10 @@ import placeholderImg from "@/app/assets/images/placeholder.png";
 
 type Props = {
   product: ProductType;
+  setIsSearchBar?: (value: boolean) => void;
 };
 
-const ProductCard = ({ product }: Props) => {
+const ProductCard = ({ product, setIsSearchBar }: Props) => {
   const {
     type,
     images,
@@ -61,7 +63,14 @@ const ProductCard = ({ product }: Props) => {
         </Badge>
       )}
 
-      <Link href={`/product/${slug}`}>
+      <Link
+        onClick={() => {
+          if (setIsSearchBar) {
+            setIsSearchBar(false);
+          }
+        }}
+        href={`/product/${slug}`}
+      >
         <Image
           className="w-full h-[200px] mx-auto object-cover hover:scale-110 transition-all duration-500 rounded"
           src={images[0]?.src || placeholderImg}
@@ -72,14 +81,16 @@ const ProductCard = ({ product }: Props) => {
 
         <div className="pt-3">
           <h2 className="font-medium block text-center hover:underline hover:text-primary transition-all spin-out-3 line-clamp-2">
-            {name.substring(0, 40)}...
+            {name.length > 40 ? name.substring(0, 40) + "..." : name}
           </h2>
 
           {/* Price extracted from price_html */}
           <p className="text-center text-sm">
             <span
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(extractPrice(price_html as string)),
+                __html: DOMPurify.sanitize(
+                  extractPrice(price_html || "<span>Price Unavailable</span>")
+                ),
               }}
             />
           </p>
@@ -106,12 +117,12 @@ const ProductCard = ({ product }: Props) => {
         </EnhancedButton>
       ) : (
         <a
-        target="_blank"
+          target="_blank"
           href={external_url || ""}
           className={buttonVariants({
             className: "w-full mt-3 text-wrap",
             effect: "shine",
-            size: "sm"
+            size: "sm",
           })}
         >
           {button_text || "Buy Now"}

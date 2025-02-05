@@ -86,7 +86,7 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
     formState: { errors },
   } = useForm<FormData>();
 
-  // distruckture product object
+  // destructure product object
   const {
     id,
     type,
@@ -238,13 +238,13 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   return (
     <div
       onClick={() => setOpen(null)}
-      className={`fixed inset-0 bg-black/55 py-12 z-[60] min-h-screen flex items-center justify-center px-5 ${
+      className={`fixed inset-0 bg-black/55 py-12 z-[60] max-h-screen flex items-center justify-center px-5 ${
         open === id ? "block" : "hidden"
       }`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="overflow-y-scroll h-screen bg-white p-5 rounded-md w-[500px]"
+        className="overflow-y-scroll max-h-[700px] md:h-screen bg-white p-5 rounded-md w-[500px]"
       >
         {/* close button */}
         <div className="flex justify-end">

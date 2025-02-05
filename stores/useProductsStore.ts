@@ -1,5 +1,4 @@
 import { ProductType } from "@/lib/types";
-import { BASE_URL } from "@/lib/utils";
 import { create } from "zustand";
 
 interface VariationStore {
@@ -30,7 +29,7 @@ const useProductsStore = create<VariationStore>((set) => ({
       if (params.recent) query.append("recent", "true");
       if (params.per_page) query.append("per_page", params.per_page.toString());
 
-      const res = await fetch(`${BASE_URL}/products?${query.toString()}`);
+      const res = await fetch(`/api/products?${query.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch products");
 
       const data = await res.json();

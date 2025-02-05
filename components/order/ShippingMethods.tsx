@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { EnhancedButton } from "@/components/ui/enhancedButton";
 import { ShippingMethod } from "@/lib/types";

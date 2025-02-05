@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { BASE_URL } from "@/lib/utils";
 
 interface StoreType {
   currency: string | null;
@@ -19,7 +18,7 @@ const useCurrencyStore = create<StoreType>((set) => ({
     set({ loading: true, error: null });
 
     try {
-      const res = await fetch(`${BASE_URL}/settings`);
+      const res = await fetch(`/api/settings`);
       if (!res.ok) throw new Error("Failed to fetch currency");
 
       const data = await res.json();

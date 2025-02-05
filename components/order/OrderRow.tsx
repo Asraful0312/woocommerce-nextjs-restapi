@@ -1,3 +1,4 @@
+"use client";
 import { OrderType } from "@/lib/order-types";
 import { useState } from "react";
 import {
@@ -10,7 +11,7 @@ import {
 } from "../ui/table";
 import { Button } from "../ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import Link from "next/link";
 import { buttonVariants } from "../ui/enhancedButton";
 import { Badge } from "../ui/badge";
@@ -54,18 +55,14 @@ const OrderRow = ({ order }: { order: OrderType }) => {
           </Badge>
         </TableCell>
         <TableCell>{format(new Date(order.date_created), "PPP")}</TableCell>
-        <TableCell>
-          {formatDistanceToNow(new Date(order.date_created), {
-            addSuffix: true,
-          })}
-        </TableCell>
+
         <TableCell>{`${order.billing.first_name} ${order.billing.last_name}`}</TableCell>
         <TableCell>{order.payment_method_title}</TableCell>
         <TableCell className="font-medium">
           {order.currency_symbol}
           {order.total}
         </TableCell>
-        <TableCell>
+        <TableCell className="flex items-center gap-2">
           <Link
             href={`/order/${order?.id}`}
             className={buttonVariants({

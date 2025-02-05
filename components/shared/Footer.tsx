@@ -14,7 +14,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 text-gray-600 py-12 mt-20">
       <Wrapper className="">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Quick Links</h3>
             <ul className="space-y-2">
@@ -34,7 +34,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/sale" className="hover:text-gray-900">
+                <Link href="/shop?on_sale=true" className="hover:text-gray-900">
                   Sale
                 </Link>
               </li>
@@ -56,18 +56,18 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/shipping" className="hover:text-gray-900">
-                  Shipping & Returns
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/track-order" className="hover:text-gray-900">
+                <Link href="/orders" className="hover:text-gray-900">
                   Track Order
                 </Link>
               </li>
             </ul>
           </div>
 
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h3 className="text-lg font-semibold">About Us</h3>
             <ul className="space-y-2">
               <li>
@@ -91,7 +91,7 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Follow Us</h3>
