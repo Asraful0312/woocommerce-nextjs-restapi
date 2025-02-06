@@ -9,7 +9,7 @@ import { BASE_URL } from "@/lib/utils";
 
 const getFeatureProducts = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/products?feature=true&&per_page=8`, {
+    const res = await fetch(`${BASE_URL}/products?feature=true&per_page=8`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
