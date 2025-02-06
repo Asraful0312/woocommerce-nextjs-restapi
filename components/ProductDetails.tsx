@@ -8,8 +8,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Image from "next/image";
-import { extractPrice } from "@/lib/utils";
-import DOMPurify from "dompurify";
+import { extractPrice, sanitize } from "@/lib/utils";
 import Variation from "@/components/Variation";
 import OrderForm from "@/components/order/OrderForm";
 import { ProductType } from "@/lib/types";
@@ -106,7 +105,7 @@ const ProductDetails = ({ product }: Props) => {
           <div
             className="mt-2 pb-5 border-b"
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(extractPrice(price_html as string)),
+              __html: sanitize(extractPrice(price_html as string)),
             }}
           />
 
@@ -114,7 +113,7 @@ const ProductDetails = ({ product }: Props) => {
             <div
               className="pt-5"
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(short_description),
+                __html: sanitize(short_description),
               }}
             />
           )}
@@ -227,7 +226,7 @@ const ProductDetails = ({ product }: Props) => {
           <h2 className="text-start font-semibold text-xl ">Description</h2>
           <div
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(description as string),
+              __html: sanitize(description as string),
             }}
           />
         </div>

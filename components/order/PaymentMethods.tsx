@@ -1,5 +1,4 @@
 "use client";
-import DOMPurify from "dompurify";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
@@ -10,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PaymentGateway, ProductType } from "@/lib/types";
+import { sanitize } from "@/lib/utils";
 
 export type SelectedGateway = {
   id: string;
@@ -85,7 +85,7 @@ const PaymentMethod = ({
           <div
             className=""
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(selectedPaymentMethod?.description),
+              __html: sanitize(selectedPaymentMethod?.description),
             }}
           />
         </div>

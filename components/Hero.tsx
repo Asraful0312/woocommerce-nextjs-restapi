@@ -9,7 +9,7 @@ import HeroStatic from "./HeroStatic";
 import Link from "next/link";
 import { buttonVariants } from "./ui/enhancedButton";
 import HeroSkeleton from "./skeletons/HeroSkeleton";
-import DOMPurify from "dompurify";
+import { sanitize } from "@/lib/utils";
 
 const fetchProducts = async (): Promise<ProductType[]> => {
   const res = await fetch(`/api/products?feature=true&per_page=3&recent=true`);
@@ -93,7 +93,7 @@ const Hero = () => {
                     <p
                       className="text-lg md:text-xl mb-8"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
+                        __html: sanitize(
                           products[currentIndex].short_description.length > 80
                             ? `${products[
                                 currentIndex

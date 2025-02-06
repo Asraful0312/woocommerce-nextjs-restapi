@@ -22,8 +22,6 @@ const Profile = () => {
   const [editableField, setEditableField] = useState<string | null>(null);
   const { data } = useUser(userId as string, token as string);
 
-  console.log("profile data", data, type);
-
   const {
     register,
     handleSubmit,
@@ -106,14 +104,16 @@ const Profile = () => {
               <div className="absolute inset-y-0 start-0 flex items-center ps-3">
                 <UserIcon size={16} strokeWidth={2} aria-hidden="true" />
               </div>
-              {type !== "google"&&<Button
-                type="button"
-                size="icon"
-                variant={editableField === "name" ? "default" : "secondary"}
-                onClick={() => handleEdit("name")}
-              >
-                <Edit2 className="size-5" />
-              </Button>}
+              {type !== "google" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={editableField === "name" ? "default" : "secondary"}
+                  onClick={() => handleEdit("name")}
+                >
+                  <Edit2 className="size-5" />
+                </Button>
+              )}
             </div>
             {errors.name && (
               <p className="text-red-500 text-sm">{errors.name.message}</p>

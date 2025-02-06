@@ -5,31 +5,39 @@ import { ProductType } from "@/lib/types";
 import Link from "next/link";
 import { buttonVariants } from "./ui/enhancedButton";
 import ErrorMessage from "./shared/ErrorMessage";
-import { BASE_URL } from "@/lib/utils";
+import api from "@/lib/woocommerce";
 
-const getFeatureProducts = async () => {
+const getRecentProducts = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/products?recent=true&&per_page=8`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      next: {
-        revalidate: 60,
-      },
+    const { data: products } = await api.get("products", {
+      per_page: 8,
+      orderby: "date",
+      order: "desc",
+      status: "publish",
     });
 
-    if (!res.ok) throw new Error("Failed to fetch products");
-    const { products } = await res.json();
-    return products;
+    // Fetch variations if the product type is "variable"
+    const productsWithVariations = await Promise.all(
+      products.map(async (product: ProductType) => {
+        if (product.type === "variable") {
+          const { data: variations } = await api.get(
+            `products/${product.id}/variations`
+          );
+          return { ...product, variations };
+        }
+        return product;
+      })
+    );
+
+    return productsWithVariations;
   } catch (error) {
-    console.log("feature product error", error);
+    console.error("Error fetching recent products:", error);
     return null;
   }
 };
 
 const FeaturedProducts = async () => {
-  const products = await getFeatureProducts();
+  const products = await getRecentProducts();
 
   if (!products)
     return <ErrorMessage className="text-black" message="No products found" />;

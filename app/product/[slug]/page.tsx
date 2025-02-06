@@ -1,17 +1,7 @@
 import React from "react";
 import ProductDetails from "./ProductDetails";
 import { Metadata } from "next";
-import { BASE_URL } from "@/lib/utils";
-// import { ProductType } from "@/lib/types";
-
-// export async function generateStaticParams() {
-//   const {products} = await fetch(`${BASE_URL}/products`).then((res) =>
-//     res.json()
-//   );
-//   return products?.map((product: ProductType) => ({
-//     params: { slug: product?.slug },
-//   }));
-// }
+import api from "@/lib/woocommerce";
 
 const defaultMetadata: Metadata = {
   title: "Not Found",
@@ -26,9 +16,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   let product;
   try {
-    const response = await fetch(`${BASE_URL}/products/${params.slug}`);
-    if (!response.ok) throw new Error("Failed to fetch product");
-    product = await response.json();
+    const response = await api.get("products", {
+      slug: params.slug,
+    });
+
+    if (!response.data.length) throw new Error("Product not found");
+
+    product = response.data[0]; // WooCommerce returns an array for slug-based queries
   } catch (error) {
     console.error("Failed to fetch product:", error);
     return defaultMetadata;
@@ -37,22 +31,28 @@ export async function generateMetadata({
   const yoast = product?.yoast_head_json;
 
   return {
-    title: yoast?.title || defaultMetadata.title,
-    description: yoast?.og_description || defaultMetadata.description,
+    title: yoast?.title || product.name || defaultMetadata.title,
+    description:
+      yoast?.og_description ||
+      product.short_description ||
+      defaultMetadata.description,
     openGraph: {
-      title: yoast?.og_title || defaultMetadata.title,
-      description: yoast?.og_description || defaultMetadata.description,
-      url: yoast?.og_url || `${BASE_URL}/products/${params.slug}`,
+      title: yoast?.og_title || product.name || defaultMetadata.title,
+      description:
+        yoast?.og_description ||
+        product.short_description ||
+        defaultMetadata.description,
+      url: `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/product/${params.slug}`,
       images:
-        yoast?.og_image?.map((image: any) => ({
-          url: image.url,
+        product?.images?.map((image: any) => ({
+          url: image.src,
           width: image.width,
           height: image.height,
         })) || [],
-      type: yoast?.og_type || "website",
+      type: "article", // Changed from "product" to "article"
     },
     twitter: {
-      card: yoast?.twitter_card || "summary_large_image",
+      card: "summary_large_image",
     },
   };
 }

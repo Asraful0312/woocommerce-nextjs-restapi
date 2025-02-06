@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ProductType } from "@/lib/types";
 import { Badge } from "../ui/badge";
-import { extractPrice } from "@/lib/utils";
-import DOMPurify from "dompurify";
+import { extractPrice, sanitize } from "@/lib/utils";
 import OrderForm from "../order/OrderForm";
 import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
 import placeholderImg from "@/app/assets/images/placeholder.png";
@@ -88,7 +87,7 @@ const ProductCard = ({ product, setIsSearchBar }: Props) => {
           <p className="text-center text-sm">
             <span
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(
+                __html: sanitize(
                   extractPrice(price_html || "<span>Price Unavailable</span>")
                 ),
               }}
