@@ -5,7 +5,6 @@ export const decodeJWT = (token: string) => {
       throw new Error("Token is required and must be a string");
     }
 
-    // Split the token into parts
     const parts = token.split(".");
     if (parts.length !== 3) {
       throw new Error("Invalid JWT format");
