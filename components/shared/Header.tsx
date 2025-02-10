@@ -23,7 +23,7 @@ import {
   MenubarTrigger,
 } from "../ui/menubar";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { getAuthToken, useAuthStore } from "@/stores/useAuthStore";
 import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
 import Logo from "./Logo";
 import { useClickOutside } from "@mantine/hooks";
@@ -45,7 +45,8 @@ const Header = ({ logo }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchBar, setIsSearchBar] = useState(false);
   const ref = useClickOutside(() => setIsOpen(false));
-  const { token, logout, username, userEmail } = useAuthStore();
+  const authToken = getAuthToken();
+  const { logout, username, userEmail } = useAuthStore();
 
   return (
     <motion.header
@@ -83,7 +84,7 @@ const Header = ({ logo }: Props) => {
               <Search className="shrink-0 size-5" />
             )}
           </button>
-          {!token && (
+          {!authToken && (
             <Link
               href="/login"
               className={buttonVariants({
@@ -95,7 +96,7 @@ const Header = ({ logo }: Props) => {
               Login
             </Link>
           )}
-          {token && (
+          {authToken && (
             <Menubar className="shadow-none border-none rounded-full">
               <MenubarMenu>
                 <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0 bg-transparent">
@@ -104,7 +105,7 @@ const Header = ({ logo }: Props) => {
                 <MenubarContent align="end" className="">
                   <MenubarItem asChild className="">
                     <Link
-                      href="/profile"
+                      href="/account"
                       className="w-full flex items-start gap-2"
                     >
                       <User2 className="shrink-0 size-4" />
@@ -133,7 +134,7 @@ const Header = ({ logo }: Props) => {
                     </Link>
                   </MenubarItem>
                   <MenubarSeparator />
-                  {token && (
+                  {authToken && (
                     <MenubarItem onClick={logout}>
                       <LogOutIcon className="shrnk-0 size-4" />
                       <span className="ml-2"> Logout</span>
@@ -169,13 +170,13 @@ const Header = ({ logo }: Props) => {
             <Link
               key={item.name + item.link}
               href={item.link}
-              onClick={()=> setIsOpen(false)}
+              onClick={() => setIsOpen(false)}
               className="block py-2 text-foreground/60 hover:text-foreground"
             >
               {item.name}
             </Link>
           ))}
-          {!token ? (
+          {!authToken ? (
             <Link
               href="/login"
               className={buttonVariants({

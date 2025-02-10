@@ -2,14 +2,14 @@ import Wrapper from "@/components/shared/Wrapper";
 import { Metadata } from "next";
 import React from "react";
 
-
 const defaultMetadata: Metadata = {
-  title: "FAQ",
-  description: "This is faq page",
+  title: "Privacy Policy",
+  description: "This is privacy policy page",
 };
 
+//fetch contact page
 async function getSiteSettings() {
-  const baseUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/wp-json/wp/v2/pages?slug=faq&status=publish`;
+  const baseUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/wp-json/wp/v2/pages?slug=privacy-policy`;
 
   // Encode the username and password in base64
   const authHeader = Buffer.from(
@@ -23,7 +23,7 @@ async function getSiteSettings() {
         Authorization: `Basic ${authHeader}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 86400 }, // Cache data for 24 hours
+      next: { revalidate: 60 }, // Cache data for 24 hours
     });
 
     if (!response.ok) {
@@ -46,7 +46,7 @@ async function getSiteSettings() {
   }
 }
 
-//set yoast metadata
+// fetch yoast metadata
 export async function generateMetadata(): Promise<Metadata> {
   let site;
   try {
@@ -80,13 +80,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function FaqPage() {
-  const faqData = await getSiteSettings();
+export default async function PrivacyPolicyPage() {
+  const aboutData = await getSiteSettings();
 
-  if (!faqData) {
+  if (!aboutData) {
     return (
       <Wrapper className="py-6">
-        <h1 className="text-3xl font-bold">FAQ Page</h1>
+        <h1 className="text-3xl font-bold">Privacy Policy Page</h1>
         <p className="mt-4">
           Sorry, we couldn&rsquo;t load the about information at this time.
         </p>
@@ -96,11 +96,11 @@ export default async function FaqPage() {
 
   return (
     <Wrapper className=" py-6">
-      <h1 className="text-3xl font-bold">{faqData?.title?.rendered}</h1>
+      <h1 className="text-3xl font-bold">{aboutData?.title?.rendered}</h1>
       <div
         className="prose mt-4"
         dangerouslySetInnerHTML={{
-          __html: faqData?.content?.rendered,
+          __html: aboutData?.content?.rendered,
         }}
       />
     </Wrapper>

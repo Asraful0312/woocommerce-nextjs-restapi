@@ -9,7 +9,7 @@ import HeroStatic from "./HeroStatic";
 import Link from "next/link";
 import { buttonVariants } from "./ui/enhancedButton";
 import HeroSkeleton from "./skeletons/HeroSkeleton";
-import { sanitize } from "@/lib/utils";
+import { extractPrice, sanitize } from "@/lib/utils";
 
 const fetchProducts = async (): Promise<ProductType[]> => {
   const res = await fetch(`/api/products?feature=true&per_page=3&recent=true`);
@@ -103,19 +103,33 @@ const Hero = () => {
                       }}
                     />
                   ) : (
-                    <p className="text-lg md:text-xl mb-8">
+                    <p className="text-lg md:text-xl mb-6">
                       Discover our eco-friendly and sustainable fashion
                       collection.
                     </p>
                   )}
-                  <Link
-                    href={`/product/${products[currentIndex]?.slug}`}
-                    className={buttonVariants({
-                      size: "sm",
-                    })}
-                  >
-                    Shop Now
-                  </Link>
+                  <div className="flex flex-col items-start">
+                    <p className="text-center text-sm mb-3">
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: sanitize(
+                            extractPrice(
+                              products[currentIndex]?.price_html ||
+                                "<span>Price Unavailable</span>"
+                            )
+                          ),
+                        }}
+                      />
+                    </p>
+                    <Link
+                      href={`/product/${products[currentIndex]?.slug}`}
+                      className={buttonVariants({
+                        size: "sm",
+                      })}
+                    >
+                      Shop Now
+                    </Link>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

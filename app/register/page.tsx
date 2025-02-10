@@ -18,13 +18,12 @@ import {
 } from "@/components/ui/card";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
+
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import Image from "next/image";
 
 type RegisterFormInputs = {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
 };
@@ -66,146 +65,131 @@ export default function RegisterForm() {
   };
 
   return (
-    <RedirectIfAuthenticated>
-      <div className="flex justify-center">
-        <Card className="w-[500px] mt-20">
-          <CardHeader>
-            <CardTitle>Register</CardTitle>
-            <CardDescription>Create a new account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+    <div className="flex justify-center">
+      <Card className="w-[400px] mt-20">
+        <CardHeader>
+          <CardTitle>Register</CardTitle>
+          <CardDescription>Create a new account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Name</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                disabled={mutation.isPending || loading}
+                {...register("name", {
+                  required: "Name is required",
+                })}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                disabled={mutation.isPending || loading}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Enter a valid email",
+                  },
+                })}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
                 <Input
-                  id="firstName"
-                  placeholder="John"
-                  {...register("firstName", {
-                    required: "First name is required",
-                  })}
-                />
-                {errors.firstName && (
-                  <p className="text-red-500 text-sm">
-                    {errors.firstName.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  placeholder="Doe"
-                  {...register("lastName", {
-                    required: "Last name is required",
-                  })}
-                />
-                {errors.lastName && (
-                  <p className="text-red-500 text-sm">
-                    {errors.lastName.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Enter a valid email",
+                  className="pe-9"
+                  id="password"
+                  placeholder="Password"
+                  disabled={mutation.isPending || loading}
+                  type={isVisible ? "text" : "password"}
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
                     },
                   })}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email.message}</p>
-                )}
+                <button
+                  className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center text-muted-foreground/80"
+                  type="button"
+                  onClick={() => setIsVisible((prev) => !prev)}
+                  aria-label={isVisible ? "Hide password" : "Show password"}
+                >
+                  {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    className="pe-9"
-                    id="password"
-                    placeholder="Password"
-                    type={isVisible ? "text" : "password"}
-                    {...register("password", {
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                    })}
-                  />
-                  <button
-                    className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center text-muted-foreground/80"
-                    type="button"
-                    onClick={() => setIsVisible((prev) => !prev)}
-                    aria-label={isVisible ? "Hide password" : "Show password"}
-                  >
-                    {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-sm">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={mutation.isPending || loading || redirect}
-              >
-                {mutation.isPending ? "Registering..." : "Register"}
-              </Button>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={mutation.isPending || loading || redirect}
+            >
+              {mutation.isPending ? "Registering..." : "Register"}
+            </Button>
 
-              <p className="text-center text-sm text-muted-foreground relative z-10">
-                <span className="bg-white p-1 rounded-full">OR</span>
-                <p className="w-full bg-gray-300 top-1/2 absolute inset-x-0 h-[1px] -z-10" />
-              </p>
-
-              <Button
-                className="w-full flex items-center justify-center gap-2"
-                disabled={mutation.isPending || loading || redirect}
-                variant="secondary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  login();
-                }}
-              >
-                <Image
-                  className="shrink-0"
-                  src="/google.png"
-                  alt="google image"
-                  width={16}
-                  height={16}
-                />
-                {loading ? "Loading..." : "Google Sign Up"}
-              </Button>
-            </form>
-
-             {/* redirect ui */}
-            {redirect && (
-              <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center">
-                <Loader2 className="size-4 animate-spin shrink-0" />
-                <p className="text-sm text-center">Redirecting to home page</p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <p className="text-sm text-center w-full">
-              Already have an account?{" "}
-              <Link href="/login" className="text-blue-500 hover:underline">
-                Login
-              </Link>
+            <p className="text-center text-sm text-muted-foreground relative z-10">
+              <span className="bg-white p-1 rounded-full">OR</span>
+              <p className="w-full bg-gray-300 top-1/2 absolute inset-x-0 h-[1px] -z-10" />
             </p>
-          </CardFooter>
-        </Card>
-      </div>
-    </RedirectIfAuthenticated>
+
+            <Button
+              className="w-full flex items-center justify-center gap-2"
+              disabled={mutation.isPending || loading || redirect}
+              variant="secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                login();
+              }}
+            >
+              <Image
+                className="shrink-0"
+                src="/google.png"
+                alt="google image"
+                width={16}
+                height={16}
+              />
+              {loading ? "Loading..." : "Google Sign Up"}
+            </Button>
+          </form>
+
+          {/* redirect ui */}
+          {redirect && (
+            <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center">
+              <Loader2 className="size-4 animate-spin shrink-0" />
+              <p className="text-sm text-center">Redirecting please wait</p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter>
+          <p className="text-sm text-center w-full">
+            Already have an account?{" "}
+            <Link href="/login" className="text-blue-500 hover:underline">
+              Login
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }

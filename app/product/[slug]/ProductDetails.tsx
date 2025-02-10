@@ -18,6 +18,7 @@ import { buttonVariants, EnhancedButton } from "@/components/ui/enhancedButton";
 import ProductDetailsSkeleton from "@/components/skeletons/ProductDetailsSkeleton";
 import AttributeSelector from "@/components/Attributes";
 import useVariationStore from "@/stores/useVariationStore";
+import ErrorMessage from "@/components/shared/ErrorMessage";
 
 type Props = {
   params: string;
@@ -54,7 +55,7 @@ const ProductDetails = ({ params }: Props) => {
     return <ProductDetailsSkeleton />;
   }
   if (error) {
-    return <p className="text-center text-red-500">Error: {error.message} </p>;
+    return <ErrorMessage message={error.message} />;
   }
 
   console.log(product);

@@ -21,9 +21,10 @@ import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useShippingMethods } from "@/hooks/useShippingMethods";
 import { useAttributeStore } from "@/stores/useAttributesStore";
 import AttributeSelector from "../Attributes";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { getAuthToken, useAuthStore } from "@/stores/useAuthStore";
 import SuccessPopup from "./OrderSuccessCard";
 import ShippingMethods from "./ShippingMethods";
+import { usePlaceStripeOrder } from "@/hooks/usePlaceStripeOrder";
 
 type Props = {
   product: ProductType;
@@ -66,10 +67,13 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
     showSuccessPopup,
     setShowSuccessPopup,
   });
+  const { placeStripeOrder, isLoading: isStripeLoading } =
+    usePlaceStripeOrder();
   const [selectedShipping, setSelectedShipping] =
     useState<ShippingMethod | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod | null>(null);
+  const authToken = getAuthToken();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -169,16 +173,24 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
       );
     }
 
+    const isStripe = selectedPaymentMethod?.id;
+
     const orderData = {
       customer_id: userId || 0,
-      payment_method: selectedPaymentMethod?.id,
-      payment_method_title: selectedPaymentMethod?.title,
+      payment_method: isStripe ? "stripe" : selectedPaymentMethod?.id,
+      payment_method_title: isStripe
+        ? "Credit Card"
+        : selectedPaymentMethod?.title,
       set_paid: false,
       billing: {
         first_name: formData.name,
         address_1: formData.address,
         phone: formData.phone,
         email: formData.email,
+        city: "noakhali", // Add these fields
+        postcode: "1234",
+        country: "bangladesh",
+        state: "chottogram",
       },
       line_items: [
         {
@@ -232,7 +244,83 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
           : [],
     };
 
-    placeOrder(orderData);
+    if (isStripe) {
+      const newOrderData = {
+        id: userId || "0",
+        token: authToken,
+        name: formData.name,
+        email: formData.email,
+        line_items: [
+          {
+            product_id: product.id,
+            variation_id:
+              type === "variable"
+                ? typeof variations !== "number" &&
+                  variations?.find(
+                    (v: ProductVariation) =>
+                      v?.name === (selectedVariation?.name || "")
+                  )?.id
+                : undefined,
+            quantity,
+            meta_data: Object.entries(selectedAttributes).map(
+              ([key, value]) => ({
+                key,
+                value,
+              })
+            ), // ✅ Add attributes here
+          },
+        ],
+        billing: {
+          first_name: formData.name,
+          address_1: formData.address,
+          phone: formData.phone,
+          email: formData.email,
+        },
+        shipping:
+          downloadable || virtual
+            ? {} // ✅ No shipping required for digital products
+            : {
+                first_name: formData.name,
+                address_1: formData.address,
+                phone: formData.phone,
+                email: formData.email,
+              },
+
+        meta_data: [
+          ...(selectedPaymentMethod?.id === "woo_bkash" ||
+          selectedPaymentMethod?.id === "woo_nagad"
+            ? [
+                { key: "account_number", value: formData.account_number },
+                { key: "transaction_id", value: formData.transaction_id },
+              ]
+            : []),
+        ],
+
+        shipping_lines:
+          downloadable || virtual
+            ? [] // ✅ Fix: Ensure empty array for digital products
+            : selectedShipping?.method_id
+            ? [
+                {
+                  method_id: selectedShipping.method_id,
+                  method_title: selectedShipping.title,
+                  total: selectedShipping.settings?.cost?.value || "0",
+                },
+              ]
+            : [],
+      };
+      placeStripeOrder(newOrderData, userId as string);
+      setFormData({
+        name: "",
+        address: "",
+        phone: "",
+        email: "",
+        account_number: "",
+        transaction_id: "",
+      });
+    } else {
+      placeOrder(orderData);
+    }
   };
 
   return (
@@ -429,21 +517,32 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
             })()}
           </p>
 
-          <EnhancedButton
-            disabled={isPending}
-            type="submit"
-            effect="shine"
-            className="w-full disabled:opacity-70"
-          >
-            {isPending ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="size-4 shrink-0 animate-spin" />
-                <span>Loading...</span>
-              </div>
-            ) : (
-              "Buy Now"
-            )}
-          </EnhancedButton>
+          {selectedPaymentMethod?.id === "stripe_cc" ? (
+            <EnhancedButton
+              disabled={isStripeLoading}
+              className="w-full flex itecms-center justify-center"
+              effect="shine"
+            >
+              {<Loader2 className="size-4 shrink-0" />}{" "}
+              {isStripeLoading ? "Loading..." : "Pay With Stripe"}
+            </EnhancedButton>
+          ) : (
+            <EnhancedButton
+              disabled={isPending}
+              type="submit"
+              effect="shine"
+              className="w-full disabled:opacity-70"
+            >
+              {isPending ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                "Buy Now"
+              )}
+            </EnhancedButton>
+          )}
         </form>
       </div>
       <SuccessPopup

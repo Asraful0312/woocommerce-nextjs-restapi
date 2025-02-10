@@ -1,6 +1,5 @@
 "use client";
 
-import AuthGuard from "@/components/AuthGuard";
 import DownloadableProducts from "@/components/DownloadableProducts";
 import { DownloadableProductType } from "@/lib/types";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -34,23 +33,19 @@ const Downloads = () => {
         <DownloadableProductsSkeleton />
       </Wrapper>
     );
-  if (isError) return <AuthGuard>Error loading downloads</AuthGuard>;
+  if (isError) return <p>Error loading downloads</p>;
   if (!isLoading && !isError && data && data?.length === 0)
     return (
-      <AuthGuard>
-        <p className="text-center pt-12">
-          You haven&rsquo;t downloaded any products yet
-        </p>
-      </AuthGuard>
+      <p className="text-center pt-12">
+        You don&rsquo;t have any downloadable items.
+      </p>
     );
 
   return (
-    <AuthGuard>
-      <Wrapper className="mt-10">
-        <h1 className="mb-3 font-semibold">Your Downloads</h1>
-        {data && data?.length > 0 && <DownloadableProducts products={data} />}
-      </Wrapper>
-    </AuthGuard>
+    <Wrapper className="mt-10">
+      <h1 className="mb-3 font-semibold">Your Downloads</h1>
+      {data && data?.length > 0 && <DownloadableProducts products={data} />}
+    </Wrapper>
   );
 };
 

@@ -7,18 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useSingleOrder } from "@/hooks/useSingleOrder";
-import { CreditCard, Package, Truck } from "lucide-react";
+import { CreditCard, Info, Package, Truck } from "lucide-react";
 import Image from "next/image";
 import placeholderImg from "@/app/assets/images/placeholder.png";
 import OrderTracking from "@/components/order-tracking";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { getAuthToken } from "@/stores/useAuthStore";
 import { buttonVariants } from "@/components/ui/enhancedButton";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
-import { useOrderNotes } from "@/hooks/useOrderNotes";
-import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   params: {
@@ -28,12 +26,7 @@ type Props = {
 
 const SingleOrder = ({ params }: Props) => {
   const { data: order, isLoading, error } = useSingleOrder(params.orderid);
-  const {
-    data: notes,
-    isLoading: noteLoading,
-    error: noteError,
-  } = useOrderNotes(params.orderid);
-  const { token } = useAuthStore();
+  const authToken = getAuthToken();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) {
@@ -43,6 +36,8 @@ const SingleOrder = ({ params }: Props) => {
   } else if (!isLoading && !error && !order?.id) {
     return <ErrorMessage className="text-black" message="Order not Found!" />;
   }
+
+  console.log("Order", order);
 
   // Function to generate and download PDF
   const downloadInvoice = async () => {
@@ -60,23 +55,20 @@ const SingleOrder = ({ params }: Props) => {
 
   return (
     <Wrapper className="p-4">
+      {!authToken && (
+        <div className="py-2 px-4 rounded bg-blue-100 flex items-center gap-2">
+          <Info className="size-4 shrink-0 text-blue-500" />
+          <p className="text-blue-500">
+            Your are currently not logged in to track your order please copy the
+            order ID, check your order{" "}
+            <Link href={`/find-order`} className="underline">
+              here
+            </Link>
+          </p>
+        </div>
+      )}
       <OrderTracking currentStatus="complete" />
-      <div className="space-y-2 mb-8">
-        {noteError && <p className="text-red-500">{noteError?.message}</p>}
-        {noteLoading && (
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-4 w-10" />
-            <Skeleton className="h-4 w-36" />
-          </div>
-        )}
-        {!noteLoading &&
-          notes?.map((note) => (
-            <p key={note?.id} className="">
-              <span className="font-bold">{note?.author}:</span>{" "}
-              <span>{note?.note}</span>
-            </p>
-          ))}
-      </div>
+
       <div className="flex flex-wrap justify-between gap-2">
         <h1 className="text-3xl font-bold mb-6">Order Details #{order?.id}</h1>
         <div className="flex space-x-4">
@@ -86,7 +78,7 @@ const SingleOrder = ({ params }: Props) => {
           >
             Download Invoice
           </button>
-          {token && (
+          {authToken && (
             <Link
               className={buttonVariants({
                 variant: "link",

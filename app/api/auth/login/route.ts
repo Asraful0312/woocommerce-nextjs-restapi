@@ -2,10 +2,12 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import axios from "axios";
 
+
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
-
+    
+    
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/wp-json/jwt-auth/v1/token`,
       {
@@ -13,7 +15,7 @@ export async function POST(req: Request) {
         password: password,
       }
     );
-
+    
     return NextResponse.json({
       success: true,
       data: response?.data,

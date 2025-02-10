@@ -39,7 +39,7 @@ const Variation = ({ variations, isGrid }: Props) => {
             {variation?.name}
             <p>-</p>
             <p>
-              {variation.price} {currency}
+              {variation.price} {currency || ""}
             </p>
           </Button>
         ))}

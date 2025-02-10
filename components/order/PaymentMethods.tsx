@@ -71,11 +71,16 @@ const PaymentMethod = ({
               (pg) =>
                 !(pg.id === "cod" && (product.virtual || product.downloadable))
             )
-            .map((paymentGateway) => (
-              <SelectItem key={paymentGateway.id} value={paymentGateway.id}>
-                {paymentGateway.method_title}
-              </SelectItem>
-            ))}
+            .map(
+              (paymentGateway) =>
+                paymentGateway.title && (
+                  <SelectItem key={paymentGateway.id} value={paymentGateway.id}>
+                    {paymentGateway?.id === "stripe_cc"
+                      ? "Stripe"
+                      : paymentGateway?.method_title}
+                  </SelectItem>
+                )
+            )}
         </SelectContent>
       </Select>
 

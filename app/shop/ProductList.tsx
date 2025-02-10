@@ -1,6 +1,7 @@
 "use client";
 import ProductCard from "@/components/shared/ProductCard";
 import ProductCardSkeleton from "@/components/skeletons/ProductCardSkeleton";
+import { Button } from "@/components/ui/button";
 import { ProductType } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
@@ -81,13 +82,9 @@ const ProductList = () => {
       </div>
       {hasNextPage && (
         <div className="flex justify-center mt-6">
-          <button
-            onClick={() => fetchNextPage()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            disabled={isFetchingNextPage}
-          >
+          <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
             {isFetchingNextPage ? "Loading..." : "Load More"}
-          </button>
+          </Button>
         </div>
       )}
     </>

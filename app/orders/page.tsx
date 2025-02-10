@@ -8,12 +8,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/stores/useAuthStore";
+
 import { OrderType } from "@/lib/order-types";
 import Wrapper from "@/components/shared/Wrapper";
 import OrderRow from "@/components/order/OrderRow";
 import OrderRowSkeleton from "@/components/skeletons/OrderRowSkeleton";
-import AuthGuard from "@/components/AuthGuard";
+import { getAuthToken } from "@/stores/useAuthStore";
 
 // Fetch Orders with React Query
 const fetchUserOrders = async (token: string) => {
@@ -32,7 +32,7 @@ const fetchUserOrders = async (token: string) => {
 };
 
 const OrderList = () => {
-  const { token } = useAuthStore();
+  const authToken = getAuthToken();
 
   const {
     data: orders,
@@ -40,8 +40,8 @@ const OrderList = () => {
     error,
   } = useQuery({
     queryKey: ["userOrders"],
-    queryFn: () => fetchUserOrders(token as string),
-    enabled: !!token, // Only run the query if the token exists
+    queryFn: () => fetchUserOrders(authToken as string),
+    enabled: !!authToken, // Only run the query if the token exists
   });
 
   if (isLoading) {
@@ -61,29 +61,27 @@ const OrderList = () => {
   }
 
   return (
-    <AuthGuard>
-      <Wrapper className="py-6">
-        <Table>
-          <TableHeader className="bg-muted">
-            <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Payment Method</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders?.map((order: OrderType) => (
-              <OrderRow key={order.id} order={order} />
-            ))}
-          </TableBody>
-        </Table>
-      </Wrapper>
-    </AuthGuard>
+    <Wrapper className="py-6">
+      <Table>
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead></TableHead>
+            <TableHead>Order ID</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Payment Method</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders?.map((order: OrderType) => (
+            <OrderRow key={order.id} order={order} />
+          ))}
+        </TableBody>
+      </Table>
+    </Wrapper>
   );
 };
 

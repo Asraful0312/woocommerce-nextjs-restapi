@@ -10,7 +10,48 @@ import {
 } from "lucide-react";
 import Wrapper from "./Wrapper";
 
-export default function Footer() {
+const socialIcons = {
+  facebook: Facebook,
+  twitter: Twitter,
+  instagram: Instagram,
+  youtube: Youtube,
+};
+
+const getFooterData = async () => {
+  const authHeader = btoa(
+    `${process.env.WORDPRESS_ADMIN_USERNAME}:${process.env.WORDPRESS_ADMIN_PASSWORD}`
+  );
+
+  // Fetch site settings
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/wp-json/custom/v1/customizer`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          "Content-Type": "application/json",
+        },
+        next: {
+          revalidate: 60,
+        },
+      }
+    );
+    if (!res.ok) {
+      throw new Error("Failed to fetch footer info");
+    }
+
+    const data = await res.json();
+    return data || null;
+  } catch (error) {
+    console.error("Error fetching footer data:", error);
+    return null;
+  }
+};
+
+export default async function Footer() {
+  const footerData = await getFooterData();
+
   return (
     <footer className="bg-gray-100 text-gray-600 py-12 mt-20">
       <Wrapper className="">
@@ -24,12 +65,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="hover:text-gray-900">
+                <Link href="/shop" className="hover:text-gray-900">
                   Products
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className="hover:text-gray-900">
+                <Link href="/" className="hover:text-gray-900">
                   Categories
                 </Link>
               </li>
@@ -55,7 +96,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="hover:text-gray-900">
+                <Link href="/privacy-policy" className="hover:text-gray-900">
                   Privacy Policy
                 </Link>
               </li>
@@ -67,51 +108,27 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* <div className="space-y-4">
-            <h3 className="text-lg font-semibold">About Us</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/about" className="hover:text-gray-900">
-                  Our Story
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="hover:text-gray-900">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/testimonials" className="hover:text-gray-900">
-                  Testimonials
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="hover:text-gray-900">
-                  Careers
-                </Link>
-              </li>
-            </ul>
-          </div> */}
-
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Follow Us</h3>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-500 hover:text-gray-900">
-                <Facebook className="h-6 w-6" />
-                <span className="sr-only">Facebook</span>
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900">
-                <Twitter className="h-6 w-6" />
-                <span className="sr-only">Twitter</span>
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900">
-                <Instagram className="h-6 w-6" />
-                <span className="sr-only">Instagram</span>
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900">
-                <Youtube className="h-6 w-6" />
-                <span className="sr-only">YouTube</span>
-              </a>
+              {footerData?.social_links &&
+                Object.entries(footerData.social_links).map(
+                  ([key, url]: any) => {
+                    const Icon = socialIcons[key as keyof typeof socialIcons];
+                    return (
+                      <a
+                        key={key}
+                        href={url || ""}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500 hover:text-gray-900"
+                      >
+                        <Icon className="h-6 w-6" />
+                        <span className="sr-only">{key}</span>
+                      </a>
+                    );
+                  }
+                )}
             </div>
           </div>
 
@@ -136,11 +153,15 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-200">
-          <p className="text-center text-sm">
-            © {new Date().getFullYear()}{" "}
-            <span className="text-primary">Wp Methods Store</span>. All rights
-            reserved.
-          </p>
+          {footerData?.footer_text ? (
+            <p className="text-center">{footerData?.footer_text}</p>
+          ) : (
+            <p className="text-center text-sm">
+              © {new Date().getFullYear()}{" "}
+              <span className="text-primary">Wp Methods Store</span>. All rights
+              reserved.
+            </p>
+          )}
         </div>
       </Wrapper>
     </footer>

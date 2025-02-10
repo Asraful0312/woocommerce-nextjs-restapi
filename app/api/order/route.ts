@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
     // Create the order in WooCommerce
     const { data } = await api.post("orders", body);
 
+    console.log("order data", data);
+
     return NextResponse.json(
       { order_id: data.id, status: data.status },
       { status: 201 }
