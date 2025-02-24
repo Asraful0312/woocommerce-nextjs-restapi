@@ -18,7 +18,7 @@ const TrackOrder = () => {
     setIsLoading(true);
     if (!orderId) return;
     try {
-      const res = await fetch(`/api/order/${orderId}`);
+      const res = await fetch(`/api/order/${orderId}?isLoggedIn=false`);
       if (!res.ok) {
         setError("Failed to fetch order");
         setIsLoading(false);

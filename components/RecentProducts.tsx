@@ -4,8 +4,8 @@ import ProductCard from "./shared/ProductCard";
 import { ProductType } from "@/lib/types";
 import Link from "next/link";
 import { buttonVariants } from "./ui/enhancedButton";
-import ErrorMessage from "./shared/ErrorMessage";
 import api from "@/lib/woocommerce";
+import NoProducts from "./shared/no-products";
 
 const getRecentProducts = async () => {
   try {
@@ -40,20 +40,29 @@ const FeaturedProducts = async () => {
   const products = await getRecentProducts();
 
   if (!products)
-    return <ErrorMessage className="text-black" message="No products found" />;
+    return (
+      <Wrapper>
+        <Heading text="Recent Products" />
+        <NoProducts />
+      </Wrapper>
+    );
 
   return (
     <Wrapper className="">
       <Heading text="Recent Products" />
-      <Link
-        href={`/shop?recent=true`}
-        className={buttonVariants({
-          variant: "link",
-          effect: "hoverUnderline",
-        })}
-      >
-        View All
-      </Link>
+      {products && products.length > 0 && (
+        <Link
+          href={`/shop?recent=true`}
+          className={buttonVariants({
+            variant: "link",
+            effect: "hoverUnderline",
+          })}
+        >
+          View All
+        </Link>
+      )}
+
+      {products && products.length === 0 && <NoProducts />}
 
       {/* render product */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

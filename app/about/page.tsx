@@ -24,7 +24,7 @@ async function getSiteSettings() {
         Authorization: `Basic ${authHeader}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 86400 }, // Cache data for 24 hours
+      next: { revalidate: 60 }, // Cache data for 24 hours
     });
 
     if (!response.ok) {

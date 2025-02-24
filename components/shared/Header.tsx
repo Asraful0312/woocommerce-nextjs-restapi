@@ -9,11 +9,15 @@ import {
   Package,
   LogOutIcon,
   Download,
-  Search,
   User2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Wrapper from "./Wrapper";
+import Link from "next/link";
+import { getAuthToken, useAuthStore } from "@/stores/useAuthStore";
+import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
+import Logo from "./Logo";
+import SearchBar from "../SearchBar";
 import {
   Menubar,
   MenubarContent,
@@ -22,12 +26,6 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "../ui/menubar";
-import Link from "next/link";
-import { getAuthToken, useAuthStore } from "@/stores/useAuthStore";
-import { buttonVariants, EnhancedButton } from "../ui/enhancedButton";
-import Logo from "./Logo";
-import { useClickOutside } from "@mantine/hooks";
-import SearchBar from "../SearchBar";
 
 type Props = {
   logo: string;
@@ -43,8 +41,6 @@ const NAV_LINKS = [
 
 const Header = ({ logo }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSearchBar, setIsSearchBar] = useState(false);
-  const ref = useClickOutside(() => setIsOpen(false));
   const authToken = getAuthToken();
   const { logout, username, userEmail } = useAuthStore();
 
@@ -53,150 +49,138 @@ const Header = ({ logo }: Props) => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b"
+      className="bg-white sticky top-0 z-[90] w-full border-b"
     >
-      <Wrapper className="flex h-16 items-center justify-between relative">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-2xl font-bold"
-        >
+      <Wrapper className="flex py-2 flex-col gap-2 relative">
+        <div className="flex md:gap-20 items-center justify-between">
           <Logo logo={logo} />
-        </motion.div>
-        <nav className="hidden md:flex space-x-4">
-          {NAV_LINKS.map((item) => (
-            <motion.div
-              key={item.name}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-foreground/60 hover:text-foreground"
-            >
-              <Link href={item.link}>{item.name}</Link>
-            </motion.div>
-          ))}
-        </nav>
-        <div className="flex items-center space-x-2">
-          <button onClick={() => setIsSearchBar((prev) => !prev)}>
-            {isSearchBar ? (
-              <X className="shrink-0 size-5" />
-            ) : (
-              <Search className="shrink-0 size-5" />
+          <div className="hidden md:block w-full">
+            <SearchBar />
+          </div>
+          <div className="flex items-center space-x-2">
+            {!authToken && (
+              <Link
+                href="/login"
+                className={buttonVariants({
+                  className: "hidden md:inline-flex",
+                  variant: "link",
+                  effect: "hoverUnderline",
+                })}
+              >
+                Login
+              </Link>
             )}
-          </button>
-          {!authToken && (
-            <Link
-              href="/login"
-              className={buttonVariants({
-                className: "hidden md:inline-flex",
-                variant: "link",
-                effect: "hoverUnderline",
-              })}
-            >
-              Login
-            </Link>
-          )}
-          {authToken && (
-            <Menubar className="shadow-none border-none rounded-full">
-              <MenubarMenu>
-                <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0 bg-transparent">
-                  <User className="shrink-0 size-5" />
-                </MenubarTrigger>
-                <MenubarContent align="end" className="">
-                  <MenubarItem asChild className="">
-                    <Link
-                      href="/account"
-                      className="w-full flex items-start gap-2"
-                    >
-                      <User2 className="shrink-0 size-4" />
-                      <p>
-                        <span className="block">{username}</span>
-                        <span className="block">{userEmail}</span>
-                      </p>
-                    </Link>
-                  </MenubarItem>
-                  <MenubarItem asChild className="">
-                    <Link
-                      className="w-full flex items-center gap-2"
-                      href="/orders"
-                    >
-                      <Package className="shrink-0 size-4" />
-                      <span className="">Orders</span>
-                    </Link>
-                  </MenubarItem>
-                  <MenubarItem className="">
-                    <Link
-                      className="w-full flex items-center gap-2"
-                      href="/downloads"
-                    >
-                      <Download className="shrink-0 size-4" />
-                      <span className="">Downloads</span>
-                    </Link>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  {authToken && (
-                    <MenubarItem onClick={logout}>
-                      <LogOutIcon className="shrnk-0 size-4" />
-                      <span className="ml-2"> Logout</span>
+            {authToken && (
+              <Menubar className="shadow-none border-none rounded-full">
+                <MenubarMenu>
+                  <MenubarTrigger className="rounded-full size-8 flex items-center justify-center shrink-0 bg-transparent">
+                    <User className="shrink-0 size-5" />
+                  </MenubarTrigger>
+                  <MenubarContent align="end" className="">
+                    <MenubarItem asChild className="">
+                      <Link
+                        href="/account"
+                        className="w-full flex items-start gap-2"
+                      >
+                        <User2 className="shrink-0 size-4" />
+                        <p>
+                          <span className="block">{username}</span>
+                          <span className="block">{userEmail}</span>
+                        </p>
+                      </Link>
                     </MenubarItem>
-                  )}
-                </MenubarContent>
-              </MenubarMenu>
-            </Menubar>
-          )}
-
-          <div className="md:hidden">
+                    <MenubarItem asChild className="">
+                      <Link
+                        className="w-full flex items-center gap-2"
+                        href="/orders"
+                      >
+                        <Package className="shrink-0 size-4" />
+                        <span className="">Orders</span>
+                      </Link>
+                    </MenubarItem>
+                    <MenubarItem className="">
+                      <Link
+                        className="w-full flex items-center gap-2"
+                        href="/downloads"
+                      >
+                        <Download className="shrink-0 size-4" />
+                        <span className="">Downloads</span>
+                      </Link>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    {authToken && (
+                      <MenubarItem onClick={logout}>
+                        <LogOutIcon className="shrnk-0 size-4" />
+                        <span className="ml-2"> Logout</span>
+                      </MenubarItem>
+                    )}
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            )}
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsOpen((prev) => !prev)}
             >
-              {isOpen ? <X /> : <Menu />}
+              {isOpen ? <X className="shrink-0 size-5"/> : <Menu className="shrink-0 size-5" />}
             </Button>
           </div>
         </div>
-
-        <SearchBar isSearchBar={isSearchBar} setIsSearchBar={setIsSearchBar} />
+        <div className="block md:hidden w-full">
+          <SearchBar />
+        </div>
       </Wrapper>
-      {isOpen && (
+      {/* Side Menu */}
+      <div
+        onClick={() => setIsOpen(false)}
+        className={`fixed inset-0 bg-black/10 z-[100]  items-end ${
+          isOpen ? "flex" : "hidden"
+        }`}
+      >
         <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="md:hidden p-4 bg-background border-t"
+          onClick={(e) => e.stopPropagation()}
+          initial={{ x: "-100%" }}
+          animate={{ x: isOpen ? "0%" : "-100%" }}
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+          className=" w-64 h-full bg-white shadow-lg p-5 flex flex-col"
         >
-          {NAV_LINKS.map((item) => (
-            <Link
-              key={item.name + item.link}
-              href={item.link}
-              onClick={() => setIsOpen(false)}
-              className="block py-2 text-foreground/60 hover:text-foreground"
-            >
-              {item.name}
-            </Link>
-          ))}
-          {!authToken ? (
-            <Link
-              href="/login"
-              className={buttonVariants({
-                className: "w-full mt-4",
-              })}
-            >
-              Sign In
-            </Link>
-          ) : (
-            <EnhancedButton
-              className="w-full"
-              variant="secondary"
-              effect="shineHover"
-              onClick={logout}
-            >
-              Logout
-            </EnhancedButton>
-          )}
+          <button className="self-end" onClick={() => setIsOpen(false)}>
+            <X className="size-6" />
+          </button>
+          <nav className="mt-4 flex flex-col space-y-4">
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.name}
+                href={item.link}
+                onClick={() => setIsOpen(false)}
+                className="text-lg hover:text-blue-600"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-auto">
+            {!authToken ? (
+              <Link
+                href="/login"
+                className={buttonVariants({ className: "w-full mt-4" })}
+              >
+                Sign In
+              </Link>
+            ) : (
+              <EnhancedButton
+                className="w-full"
+                variant="secondary"
+                effect="shineHover"
+                onClick={logout}
+              >
+                Logout
+              </EnhancedButton>
+            )}
+          </div>
         </motion.div>
-      )}
+      </div>
     </motion.header>
   );
 };

@@ -28,3 +28,7 @@ export const extractPrice = (html: string) => {
 export const sanitize = (content: any) => {
   return "undefined" !== typeof window ? DOMPurify.sanitize(content) : content;
 };
+
+export const isSSLC = true;
+export const isStripe = true;
+export const isPaypal = true

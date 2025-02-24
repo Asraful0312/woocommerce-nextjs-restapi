@@ -42,7 +42,7 @@ const getFooterData = async () => {
     }
 
     const data = await res.json();
-    return data || null;
+    return data.footer || null;
   } catch (error) {
     console.error("Error fetching footer data:", error);
     return null;
@@ -153,8 +153,8 @@ export default async function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-200">
-          {footerData?.footer_text ? (
-            <p className="text-center">{footerData?.footer_text}</p>
+          {footerData?.text ? (
+            <p className="text-center">{footerData?.text}</p>
           ) : (
             <p className="text-center text-sm">
               © {new Date().getFullYear()}{" "}

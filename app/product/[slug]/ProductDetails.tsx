@@ -58,8 +58,6 @@ const ProductDetails = ({ params }: Props) => {
     return <ErrorMessage message={error.message} />;
   }
 
-  console.log(product);
-
   return (
     <>
       <Wrapper className="mt-14">
@@ -169,8 +167,20 @@ const ProductDetails = ({ params }: Props) => {
             <div className="pt-5">
               <h2 className="font-semibold">
                 Stock:{" "}
-                <span className="text-green-500 font-normal">
-                  {stock_quantity ? stock_quantity + " in stock" : stock_status}
+                <span
+                  className={` font-normal ${
+                    stock_quantity && stock_quantity === 0
+                      ? "bg-red-500"
+                      : stock_status === "outofstock"
+                      ? "text-red-500"
+                      : "text-green-500"
+                  }`}
+                >
+                  {stock_quantity
+                    ? stock_quantity + " in stock"
+                    : stock_status === "outofstock"
+                    ? "Out Of Stock"
+                    : stock_status}
                 </span>
               </h2>
             </div>
@@ -184,11 +194,12 @@ const ProductDetails = ({ params }: Props) => {
               <EnhancedButton
                 effect="shine"
                 size="sm"
+                disabled={stock_status === "outofstock" || stock_quantity === 0}
                 onClick={() => {
                   if (!id) return;
                   setOpen(id);
                 }}
-                className="mt-4"
+                className="mt-4 disabled:cursor-not-allowed"
               >
                 Buy Now
               </EnhancedButton>

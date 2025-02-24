@@ -3,40 +3,38 @@
 import {
   ClipboardCheck,
   CheckCheck,
-  Pizza,
   Truck,
-  SmileIcon,
+  Cog,
+  PauseCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface OrderTrackingProps {
-  currentStatus:
-    | "placed"
-    | "confirmed"
-    | "preparation"
-    | "delivery"
-    | "complete";
+  currentStatus: string;
 }
 
-export default function OrderTracking({
-  currentStatus = "confirmed",
-}: OrderTrackingProps) {
+export default function OrderTracking({ currentStatus }: OrderTrackingProps) {
   const steps = [
-    { id: "placed", title: "Order Placed", icon: ClipboardCheck },
-    { id: "confirmed", title: "Order confirmation", icon: CheckCheck },
-    { id: "preparation", title: "Preparation", icon: Pizza },
-    { id: "delivery", title: "Out for delivery", icon: Truck },
-    { id: "complete", title: "Complete", icon: SmileIcon },
+    { id: "pending", title: "Order Placed", icon: ClipboardCheck },
+    { id: "processing", title: "Processing", icon: Cog },
+    { id: "on-hold", title: "On Hold", icon: PauseCircle },
+    { id: "shipped", title: "Shipped", icon: Truck },
+    { id: "completed", title: "Completed", icon: CheckCheck },
   ];
 
   const getStatus = (stepId: string) => {
     const currentIdx = steps.findIndex((step) => step.id === currentStatus);
     const stepIdx = steps.findIndex((step) => step.id === stepId);
 
+    if (currentIdx === -1) return "upcoming";
     if (stepIdx < currentIdx) return "complete";
     if (stepIdx === currentIdx) return "current";
     return "upcoming";
   };
+
+  const currentIndex = steps.findIndex((step) => step.id === currentStatus);
+  const progressWidth =
+    currentIndex >= 0 ? (currentIndex / (steps.length - 1)) * 100 : 0;
 
   return (
     <div className="w-full mx-auto p-6">
@@ -51,13 +49,9 @@ export default function OrderTracking({
         {/* Progress Line */}
         <div className="absolute top-[2.25rem] left-0 w-full h-px bg-gray-200">
           <motion.div
-            className="absolute h-full bg-primay"
+            className="absolute h-full bg-primary"
             initial={{ width: "0%" }}
-            animate={{
-              width: `${
-                steps.findIndex((step) => step.id === currentStatus) * 25
-              }%`,
-            }}
+            animate={{ width: `${progressWidth}%` }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
           />
         </div>
@@ -76,14 +70,13 @@ export default function OrderTracking({
               >
                 <div className="mb-3">
                   <motion.div
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center
-                      ${
-                        status === "complete"
-                          ? "border-primary bg-primary text-white"
-                          : status === "current"
-                          ? "border-primary bg-white"
-                          : "border-gray-300 bg-white"
-                      }`}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
+                      status === "complete"
+                        ? "border-primary bg-primary text-white"
+                        : status === "current"
+                        ? "border-primary bg-white"
+                        : "border-gray-300 bg-white"
+                    }`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
@@ -100,18 +93,11 @@ export default function OrderTracking({
                     }
                   >
                     <motion.div
-                      animate={
-                        status === "complete"
-                          ? {
-                              rotate: 360,
-                            }
-                          : {}
-                      }
+                      animate={status === "complete" ? { rotate: 360 } : {}}
                       transition={{ duration: 0.5 }}
                     >
                       <step.icon
-                        className={`w-5 h-5 
-                        ${
+                        className={`w-5 h-5 ${
                           status === "complete"
                             ? "text-white"
                             : status === "current"
@@ -123,14 +109,13 @@ export default function OrderTracking({
                   </motion.div>
                 </div>
                 <motion.div
-                  className={`text-sm font-medium text-center
-                    ${
-                      status === "complete"
-                        ? "text-gray-600"
-                        : status === "current"
-                        ? "text-primary"
-                        : "text-gray-300"
-                    }`}
+                  className={`text-sm font-medium text-center ${
+                    status === "complete"
+                      ? "text-gray-600"
+                      : status === "current"
+                      ? "text-primary"
+                      : "text-gray-300"
+                  }`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.3 }}

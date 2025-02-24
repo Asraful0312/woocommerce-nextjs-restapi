@@ -1,7 +1,9 @@
 "use client";
+import NoProducts from "@/components/shared/no-products";
 import ProductCard from "@/components/shared/ProductCard";
 import ProductCardSkeleton from "@/components/skeletons/ProductCardSkeleton";
 import { Button } from "@/components/ui/button";
+import { TextShimmer } from "@/components/ui/text-shimmer";
 import { ProductType } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
@@ -31,11 +33,14 @@ const ProductList = () => {
   const feature = searchParams.get("feature");
   const recent = searchParams.get("recent");
   const onSale = searchParams.get("on_sale");
+  const category = searchParams.get("category");
+  const categoryName = searchParams.get("category_name");
 
   let queryParams = "";
   if (feature) queryParams += `&feature=true`;
   if (recent) queryParams += `&recent=true`;
   if (onSale) queryParams += `&on_sale=true`;
+  if (category) queryParams += `&category=${category}`;
 
   const {
     data,
@@ -67,12 +72,23 @@ const ProductList = () => {
   }
 
   if (error)
-    return <p className="text-center">An error occurred: {error.message}</p>;
-  if (products.length === 0)
-    return <p className="text-center">No products found.</p>;
+    return (
+      <p className="text-center text-red-500">
+        An error occurred: {error.message}
+      </p>
+    );
+  if (products.length === 0) return <NoProducts />;
 
   return (
     <>
+      {category ? (
+        <h1 className="text-xl font-semibold mb-4">Category: {categoryName}</h1>
+      ) : (
+        <h1 className="text-xl font-semibold mb-4">
+          {feature ? "Feature" : recent ? "Recent" : onSale ? "On Sale" : "All"}{" "}
+          Products
+        </h1>
+      )}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div key={product.id}>
@@ -80,11 +96,18 @@ const ProductList = () => {
           </div>
         ))}
       </div>
-      {hasNextPage && (
+      {hasNextPage && !isFetchingNextPage && (
         <div className="flex justify-center mt-6">
           <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
             {isFetchingNextPage ? "Loading..." : "Load More"}
           </Button>
+        </div>
+      )}
+      {isFetchingNextPage && (
+        <div className="flex justify-center mt-6">
+          <TextShimmer className="font-mono text-sm" duration={1}>
+            Getting more...
+          </TextShimmer>
         </div>
       )}
     </>

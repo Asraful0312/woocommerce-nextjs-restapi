@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import Link from "next/link";
 
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import Image from "next/image";
+import { sanitize } from "@/lib/utils";
 
 type RegisterFormInputs = {
   name: string;
@@ -104,7 +104,12 @@ export default function RegisterForm() {
                 })}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p
+                  className="text-red-500 text-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitize(errors.email.message),
+                  }}
+                />
               )}
             </div>
             <div className="space-y-2">
@@ -171,24 +176,22 @@ export default function RegisterForm() {
               />
               {loading ? "Loading..." : "Google Sign Up"}
             </Button>
+            <p className="text-sm text-center w-full">
+              Already have an account?{" "}
+              <Link href="/login" className="text-blue-500 hover:underline">
+                Login
+              </Link>
+            </p>
           </form>
 
           {/* redirect ui */}
           {redirect && (
-            <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center">
+            <div className="absolute gap-2 z-50 inset-0 bg-white/80 flex items-center justify-center">
               <Loader2 className="size-4 animate-spin shrink-0" />
               <p className="text-sm text-center">Redirecting please wait</p>
             </div>
           )}
         </CardContent>
-        <CardFooter>
-          <p className="text-sm text-center w-full">
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
-              Login
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

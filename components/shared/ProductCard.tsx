@@ -54,6 +54,9 @@ const ProductCard = ({ product, setIsSearchBar }: Props) => {
     });
   }
 
+  const outofstock =
+    product?.stock_status === "outofstock" || product?.stock_quantity === 0;
+
   return (
     <div className="w-full border rounded overflow-hidden h-full flex flex-col justify-between shadow-sm relative p-3">
       {on_sale && (
@@ -72,16 +75,16 @@ const ProductCard = ({ product, setIsSearchBar }: Props) => {
       >
         <Image
           className="w-full h-[200px] mx-auto object-cover hover:scale-110 transition-all duration-500 rounded"
-          src={images[0]?.src || placeholderImg}
+          src={(images && images[0]?.src) || placeholderImg}
           width={300}
           height={200}
-          alt={images[0]?.alt || "product image"}
+          alt={(images && images[0]?.alt) || "product image"}
         />
 
         <div className="pt-3">
-          <h2 className="font-medium block text-center hover:underline hover:text-primary transition-all spin-out-3 line-clamp-2">
-            {name.length > 40 ? name.substring(0, 40) + "..." : name}
-          </h2>
+          <p className="font-medium block text-center hover:underline hover:text-primary transition-all spin-out-3 line-clamp-2">
+            {name?.length > 40 ? name?.substring(0, 40) + "..." : name}
+          </p>
 
           {/* Price extracted from price_html */}
           <p className="text-center text-sm">
@@ -106,13 +109,14 @@ const ProductCard = ({ product, setIsSearchBar }: Props) => {
         <EnhancedButton
           effect="shine"
           size="sm"
+          disabled={outofstock}
           onClick={(e) => {
             e.preventDefault();
             setOpen(id);
           }}
           className="w-full mt-3"
         >
-          Buy Now
+          {outofstock ? "Out Of Stock" : "Buy Now"}
         </EnhancedButton>
       ) : (
         <a

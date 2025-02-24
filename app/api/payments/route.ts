@@ -12,6 +12,8 @@ export async function GET() {
   try {
     const { data } = await api.get("payment_gateways");
 
+    console.log("payment data", data);
+
     // Filter only enabled payment gateways
     const enabledGateways = Object.values(data).filter(
       (gateway: any) => gateway.enabled

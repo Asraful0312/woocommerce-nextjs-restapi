@@ -6,7 +6,6 @@ export default function Page() {
   return (
     <Suspense fallback={<div>Loading products...</div>}>
       <Wrapper className="mt-14">
-        <h1 className="text-xl font-semibold mb-4">All Products</h1>
         <ProductList />
       </Wrapper>
     </Suspense>

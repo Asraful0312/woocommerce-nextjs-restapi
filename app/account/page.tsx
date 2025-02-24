@@ -20,7 +20,7 @@ const Account = () => {
   const authToken = getAuthToken();
   const { userId, userEmail, type, setAuth } = useAuthStore();
   const [editableField, setEditableField] = useState<string | null>(null);
-  const { data } = useUser(userId as string, authToken as string);
+  const { data, isLoading } = useUser(userId as string, authToken as string);
 
   const {
     register,
@@ -59,7 +59,6 @@ const Account = () => {
 
       if (result.success) {
         toast.success("Account updated successfully!");
-        console.log("result", result);
         const type = "gmail";
         setAuth(
           authToken as string,
@@ -79,11 +78,14 @@ const Account = () => {
     }
   };
 
+  if (isLoading) {
+    return <AccountFormSkeleton />;
+  }
   return (
     <div className="px-5">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-[400px] mx-auto mt-12 space-y-4 border pb-7 px-5 rounded-md"
+        className="max-w-[360px] mx-auto mt-12 space-y-4 border pb-7 px-5 rounded-md"
       >
         <h2 className="text-xl text-center font-semibold mt-3">Your Account</h2>
         {/* Name Field */}
@@ -189,12 +191,56 @@ const Account = () => {
         </div>
 
         {/* Submit Button */}
-        {editableField && <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Updating..." : "Save Changes"}
-        </Button>}
+        {editableField && (
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Updating..." : "Save Changes"}
+          </Button>
+        )}
       </form>
     </div>
   );
 };
 
 export default Account;
+
+import { Skeleton } from "@/components/ui/skeleton";
+
+const AccountFormSkeleton = () => {
+  return (
+    <div className="px-5">
+      <div className="max-w-[360px] mx-auto mt-12 space-y-4 border pb-7 px-5 rounded-md">
+        <Skeleton className="bg-gray-300 h-6 w-32 mx-auto mt-3" />
+
+        {/* Name Field */}
+        <div className="space-y-2">
+          <Skeleton className="bg-gray-300 h-4 w-16" />
+          <div className="relative flex gap-2">
+            <Skeleton className="bg-gray-300 h-10 w-full rounded-md" />
+            <Skeleton className="bg-gray-300 h-10 w-10 rounded-md" />
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <Skeleton className="bg-gray-300 h-4 w-16" />
+          <div className="relative flex gap-2">
+            <Skeleton className="bg-gray-300 h-10 w-full rounded-md" />
+            <Skeleton className="bg-gray-300 h-10 w-10 rounded-md" />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div className="space-y-2">
+          <Skeleton className="bg-gray-300 h-4 w-16" />
+          <div className="relative flex gap-2">
+            <Skeleton className="bg-gray-300 h-10 w-full rounded-md" />
+            <Skeleton className="bg-gray-300 h-10 w-10 rounded-md" />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <Skeleton className="bg-gray-300 h-10 w-full rounded-md" />
+      </div>
+    </div>
+  );
+};

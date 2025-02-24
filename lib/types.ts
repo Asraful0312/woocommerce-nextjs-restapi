@@ -454,3 +454,56 @@ export type UserType = {
   woocommerce_meta: WooCommerceMeta;
   _links: Links;
 };
+
+export type ProductCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  parent: number;
+  description: string;
+  display: string;
+  image: {
+    id: number;
+    date_created: string;
+    date_created_gmt: string;
+    date_modified: string;
+    date_modified_gmt: string;
+    src: string;
+    name: string;
+    alt: string;
+  } | null; // Some categories might not have an image
+  menu_order: number;
+  count: number;
+  _links: {
+    self: { href: string }[];
+    collection: { href: string }[];
+  };
+};
+
+type SliderItem = {
+  image: string;
+  endpoint: string;
+};
+
+type Colors = {
+  primary_color: string;
+};
+
+type SocialLinks = {
+  facebook: string;
+  instagram: string;
+  youtube: string;
+  twitter: string;
+};
+
+type Footer = {
+  text: string;
+  background_color: string;
+  social_links: SocialLinks;
+};
+
+export type ShopConfig = {
+  slider: SliderItem[];
+  colors: Colors;
+  footer: Footer;
+};

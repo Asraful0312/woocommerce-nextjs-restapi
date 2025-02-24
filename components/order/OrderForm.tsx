@@ -1,30 +1,25 @@
 "use client";
 
 import { EnhancedButton } from "../ui/enhancedButton";
-import {
-  PaymentGateway,
-  ProductType,
-  ProductVariation,
-  ShippingMethod,
-} from "@/lib/types";
+import { ProductType, ProductVariation, ShippingMethod } from "@/lib/types";
 import { Input } from "../ui/input";
 import { Loader2, Mail, MapPin, Phone, User, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Variation from "../Variation";
 import { Label } from "../ui/label";
 import PaymentMethod from "./PaymentMethods";
 import useVariationStore from "@/stores/useVariationStore";
-import useCurrencyStore from "@/stores/useCurrencyStore";
 import { useForm } from "react-hook-form";
 import { usePlaceOrder } from "@/hooks/usePlaceOrder";
-import { usePaymentMethods } from "@/hooks/usePaymentMethods";
-import { useShippingMethods } from "@/hooks/useShippingMethods";
 import { useAttributeStore } from "@/stores/useAttributesStore";
 import AttributeSelector from "../Attributes";
-import { getAuthToken, useAuthStore } from "@/stores/useAuthStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 import SuccessPopup from "./OrderSuccessCard";
 import ShippingMethods from "./ShippingMethods";
+import { usePlaceSSLCOrder } from "@/hooks/usePlaceSSLCOrder";
+import TotalPrice from "./TotalPrice";
 import { usePlaceStripeOrder } from "@/hooks/usePlaceStripeOrder";
+import { usePlacePaypalOrder } from "@/hooks/usePlacePaypalOrder";
 
 type Props = {
   product: ProductType;
@@ -49,10 +44,7 @@ type FormData = {
 
 const OrderForm = ({ product, open, setOpen }: Props) => {
   //hooks
-  const { currency, fetchCurrency } = useCurrencyStore();
   const { selectedVariation } = useVariationStore();
-  const { data: paymentGetaways } = usePaymentMethods();
-  const { data: shippingMethods } = useShippingMethods();
   const { userId } = useAuthStore();
 
   //states
@@ -67,13 +59,21 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
     showSuccessPopup,
     setShowSuccessPopup,
   });
-  const { placeStripeOrder, isLoading: isStripeLoading } =
+  const {
+    mutate: placeSSLCOrder,
+    isPending: sslcLoading,
+    error: sslcError,
+  } = usePlaceSSLCOrder();
+  const { mutate: placeStripeOrder, isPending: stripeLoading } =
     usePlaceStripeOrder();
+  const { mutate: placePaypalOrder, isPending: paypalLoading } =
+    usePlacePaypalOrder();
+
   const [selectedShipping, setSelectedShipping] =
     useState<ShippingMethod | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod | null>(null);
-  const authToken = getAuthToken();
+
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -105,11 +105,6 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
-
-  //get shipping method and payment method
-  useEffect(() => {
-    fetchCurrency();
-  }, [fetchCurrency]);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10) || 1;
@@ -173,14 +168,10 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
       );
     }
 
-    const isStripe = selectedPaymentMethod?.id;
-
     const orderData = {
       customer_id: userId || 0,
-      payment_method: isStripe ? "stripe" : selectedPaymentMethod?.id,
-      payment_method_title: isStripe
-        ? "Credit Card"
-        : selectedPaymentMethod?.title,
+      payment_method: selectedPaymentMethod?.id,
+      payment_method_title: selectedPaymentMethod?.title,
       set_paid: false,
       billing: {
         first_name: formData.name,
@@ -222,14 +213,16 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
 
       meta_data: [
         ...(selectedPaymentMethod?.id === "woo_bkash" ||
-        selectedPaymentMethod?.id === "woo_nagad"
+        selectedPaymentMethod?.id === "woo_nagad" ||
+        selectedPaymentMethod?.id === "woo_rocket" ||
+        selectedPaymentMethod?.id === "woo_upay"
           ? [
               { key: "account_number", value: formData.account_number },
               { key: "transaction_id", value: formData.transaction_id },
             ]
           : []),
       ],
-
+      transaction_id: formData.transaction_id || "",
       shipping_lines:
         downloadable || virtual
           ? [] // ✅ Fix: Ensure empty array for digital products
@@ -244,89 +237,22 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
           : [],
     };
 
-    if (isStripe) {
-      const newOrderData = {
-        id: userId || "0",
-        token: authToken,
-        name: formData.name,
-        email: formData.email,
-        line_items: [
-          {
-            product_id: product.id,
-            variation_id:
-              type === "variable"
-                ? typeof variations !== "number" &&
-                  variations?.find(
-                    (v: ProductVariation) =>
-                      v?.name === (selectedVariation?.name || "")
-                  )?.id
-                : undefined,
-            quantity,
-            meta_data: Object.entries(selectedAttributes).map(
-              ([key, value]) => ({
-                key,
-                value,
-              })
-            ), // ✅ Add attributes here
-          },
-        ],
-        billing: {
-          first_name: formData.name,
-          address_1: formData.address,
-          phone: formData.phone,
-          email: formData.email,
-        },
-        shipping:
-          downloadable || virtual
-            ? {} // ✅ No shipping required for digital products
-            : {
-                first_name: formData.name,
-                address_1: formData.address,
-                phone: formData.phone,
-                email: formData.email,
-              },
-
-        meta_data: [
-          ...(selectedPaymentMethod?.id === "woo_bkash" ||
-          selectedPaymentMethod?.id === "woo_nagad"
-            ? [
-                { key: "account_number", value: formData.account_number },
-                { key: "transaction_id", value: formData.transaction_id },
-              ]
-            : []),
-        ],
-
-        shipping_lines:
-          downloadable || virtual
-            ? [] // ✅ Fix: Ensure empty array for digital products
-            : selectedShipping?.method_id
-            ? [
-                {
-                  method_id: selectedShipping.method_id,
-                  method_title: selectedShipping.title,
-                  total: selectedShipping.settings?.cost?.value || "0",
-                },
-              ]
-            : [],
-      };
-      placeStripeOrder(newOrderData, userId as string);
-      setFormData({
-        name: "",
-        address: "",
-        phone: "",
-        email: "",
-        account_number: "",
-        transaction_id: "",
-      });
+    if (selectedPaymentMethod?.id === "sslcommerz") {
+      placeSSLCOrder(orderData);
+    } else if (selectedPaymentMethod?.id === "stripe") {
+      placeStripeOrder(orderData);
+    } else if (selectedPaymentMethod?.id === "paypal") {
+      placePaypalOrder(orderData);
     } else {
       placeOrder(orderData);
     }
   };
+  console.log(sslcError);
 
   return (
     <div
       onClick={() => setOpen(null)}
-      className={`fixed inset-0 bg-black/55 py-12 z-[60] max-h-screen flex items-center justify-center px-5 ${
+      className={`fixed inset-0 bg-black/55 py-12 z-[90] max-h-screen flex items-center justify-center px-5 ${
         open === id ? "block" : "hidden"
       }`}
     >
@@ -445,28 +371,51 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
             )}
           </div>
 
-          {product?.stock_quantity && !sold_individually && (
-            <div className="space-y-1">
-              <Label htmlFor="quantity" className="leading-6">
-                Quantity <span className="text-red-500 text-lg">*</span>
-              </Label>
-              <div className="relative">
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  max={
-                    selectedVariation?.stock_quantity !== null
-                      ? selectedVariation?.stock_quantity
-                      : undefined
-                  }
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                  className="peer"
-                />
+          <div className="pt-5">
+            <h2 className="font-semibold">
+              Stock:{" "}
+              <span
+                className={` font-normal ${
+                  product?.stock_quantity && product?.stock_quantity === 0
+                    ? "bg-red-500"
+                    : product?.stock_status === "outofstock"
+                    ? "text-red-500"
+                    : "text-green-500"
+                }`}
+              >
+                {product?.stock_quantity
+                  ? product?.stock_quantity + " in stock"
+                  : product?.stock_status === "outofstock"
+                  ? "Out Of Stock"
+                  : product?.stock_status}
+              </span>
+            </h2>
+          </div>
+
+          {product?.stock_quantity &&
+            product?.stock_quantity > 0 &&
+            !sold_individually && (
+              <div className="space-y-1">
+                <Label htmlFor="quantity" className="leading-6">
+                  Quantity <span className="text-red-500 text-lg">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    max={
+                      selectedVariation?.stock_quantity !== null
+                        ? selectedVariation?.stock_quantity
+                        : undefined
+                    }
+                    value={quantity}
+                    onChange={handleQuantityChange}
+                    className="peer"
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* variations */}
           {type === "variable" && <Variation isGrid variations={variations} />}
@@ -475,74 +424,49 @@ const OrderForm = ({ product, open, setOpen }: Props) => {
           )}
 
           {/* shipping method */}
-          {shippingMethods && !virtual && !downloadable && (
+          {!virtual && !downloadable && (
             <ShippingMethods
               selectedShipping={selectedShipping as ShippingMethod}
               setSelectedShipping={setSelectedShipping}
-              currency={currency as string}
-              shippingMethods={shippingMethods}
             />
           )}
 
-          {paymentGetaways && (
-            <PaymentMethod
-              product={product}
-              formData={formData}
-              handleInputChange={handleInputChange}
-              paymentGateways={paymentGetaways as PaymentGateway[]}
-              selectedPaymentMethod={selectedPaymentMethod as PaymentMethod}
-              register={register}
-              errors={errors}
-              setSelectedPaymentMethod={setSelectedPaymentMethod}
-            />
+          <PaymentMethod
+            product={product}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            selectedPaymentMethod={selectedPaymentMethod as PaymentMethod}
+            register={register}
+            errors={errors}
+            setSelectedPaymentMethod={setSelectedPaymentMethod}
+          />
+
+          <TotalPrice
+            price={price}
+            quantity={quantity}
+            selectedShipping={selectedShipping}
+          />
+
+          {sslcError && (
+            <p className="text-center text-red-500">{sslcError.message}</p>
           )}
-
-          <p>
-            Total Price:{" "}
-            {(() => {
-              const basePrice = selectedVariation?.price
-                ? Number(selectedVariation.price)
-                : Number(price);
-
-              const quantityValue = Number(quantity) || 1; // Ensure quantity is a valid number, default to 1
-              const shippingCost = Number(
-                selectedShipping?.settings?.cost?.value
-              );
-
-              const totalPrice =
-                basePrice * quantityValue +
-                (isNaN(shippingCost) ? 0 : shippingCost);
-
-              return `${totalPrice} ${currency}`;
-            })()}
-          </p>
-
-          {selectedPaymentMethod?.id === "stripe_cc" ? (
-            <EnhancedButton
-              disabled={isStripeLoading}
-              className="w-full flex itecms-center justify-center"
-              effect="shine"
-            >
-              {<Loader2 className="size-4 shrink-0" />}{" "}
-              {isStripeLoading ? "Loading..." : "Pay With Stripe"}
-            </EnhancedButton>
-          ) : (
-            <EnhancedButton
-              disabled={isPending}
-              type="submit"
-              effect="shine"
-              className="w-full disabled:opacity-70"
-            >
-              {isPending ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="size-4 shrink-0 animate-spin" />
-                  <span>Loading...</span>
-                </div>
-              ) : (
-                "Buy Now"
-              )}
-            </EnhancedButton>
-          )}
+          <EnhancedButton
+            disabled={
+              !!isPending || !!sslcLoading || !!stripeLoading || !!paypalLoading
+            }
+            type="submit"
+            effect="shine"
+            className="w-full disabled:opacity-70"
+          >
+            {!!(isPending || sslcLoading || stripeLoading || paypalLoading) ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="size-4 shrink-0 animate-spin" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              "Buy Now"
+            )}
+          </EnhancedButton>
         </form>
       </div>
       <SuccessPopup

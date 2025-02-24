@@ -1,7 +1,8 @@
-"use client"
 /* eslint-disable prefer-const */
-import { fetchColors } from "@/lib/fetchColors";
-import { useEffect } from "react";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
 function hexToHSL(hex: string) {
   const r = parseInt(hex.substring(1, 3), 16) / 255;
@@ -14,10 +15,8 @@ function hexToHSL(hex: string) {
     s: number,
     l: number = (max + min) / 2;
 
-  if (max === min) {
-    h = s = 0; // achromatic
-  } else {
-    let d = max - min;
+  if (max !== min) {
+    const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
       case r:
@@ -31,9 +30,19 @@ function hexToHSL(hex: string) {
         break;
     }
     h *= 60;
+  } else {
+    s = 0; // achromatic
   }
 
   return `${Math.round(h)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%`;
+}
+
+async function fetchColors() {
+  const response = await fetch("/api/colors");
+  if (!response.ok) {
+    throw new Error("Failed to fetch colors");
+  }
+  return response.json();
 }
 
 export default function ThemeProvider({
@@ -41,19 +50,27 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  useEffect(() => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["colors"],
+    queryFn: fetchColors,
+  });
 
-    async function loadColor() {
-      const color = await fetchColors();
-      if (color) {
-        const hslColor = hexToHSL(color); // Convert HEX to HSL
-        document.documentElement.style.setProperty("--primary", hslColor);
-        console.log("Converted HSL Color:", hslColor);
-      }
+  React.useEffect(() => {
+    if (data?.primary_color && !isLoading && !isError) {
+      const hslColor = hexToHSL(data.primary_color);
+      document.documentElement.style.setProperty("--primary", hslColor);
     }
+  }, [data, isError, isLoading]);
 
-    loadColor();
-  }, []);
-
-  return <>{children}</>;
+  return (
+    <>
+      {isLoading && (
+        <div className="flex fixed inset-0 h-full items-center bg-white z-[999] justify-center">
+          <div className="loader">
+          </div>
+        </div>
+      )}
+      {children}
+    </>
+  );
 }

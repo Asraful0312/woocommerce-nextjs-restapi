@@ -5,11 +5,11 @@ const Logo = ({ logo }: { logo?: string }) => {
   return (
     <>
       {logo ? (
-        <Link href={`/`}>
+        <Link className="shrink-0" href={`/`}>
           <Image
-            width={40}
-            height={40}
-            className=""
+            width={150}
+            height={50}
+            className="shrink-0 object-cover h-[50px] max-w-[100px] md:max-w-[150px]"
             src={logo}
             alt="logo"
           />

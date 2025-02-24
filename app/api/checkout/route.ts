@@ -1,87 +1,59 @@
-import { NextResponse } from "next/server";
-import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+import { NextResponse, NextRequest } from "next/server";
+import Stripe from "stripe";
+import api from "@/lib/woocommerce";
 
-const api = new WooCommerceRestApi({
-  url: process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL!,
-  consumerKey: process.env.WC_CUSTOMER_KEY!,
-  consumerSecret: process.env.WC_CUSTOMER_SECRET!,
-  version: "wc/v3",
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-01-27.acacia",
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const {
-      line_items,
-      billing,
-      shipping,
-      meta_data,
-      shipping_lines,
-      id,
-      token,
-    } = await req.json();
+    const orderData = await req.json();
+    // Create WooCommerce Order
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "Authentication token missing" },
-        { status: 401 }
-      );
-    }
+    const { data: order } = await api.post("orders", orderData);
 
-    // 1️⃣ Validate the User Token Before Creating an Order
-    const authResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL}/wp-json/wp/v2/users/me`,
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    if (!authResponse.ok) {
-      return NextResponse.json(
-        { error: "User authentication failed" },
-        { status: 401 }
-      );
-    }
-
-    const user = await authResponse.json();
-    console.log("Authenticated User:", user);
-
-    // 2️⃣ Ensure the User Role is "customer"
-    await api.put(`customers/${user.id}`, {
-      role: "customer",
+    // Create Stripe Customer
+    const customer = await stripe.customers.create({
+      email: order?.billing.email,
+      name: order?.billing.first_name,
+      metadata: { wooOrderId: order.id },
     });
 
-    // 3️⃣ Create WooCommerce Order (Pending Payment)
-    const orderResponse = await api.post("orders", {
-      customer_id: id ? "1" : "0",
-      payment_method: "stripe",
-      payment_method_title: "Credit Card",
-      set_paid: false,
-      billing,
-      shipping,
-      line_items,
-      shipping_lines,
-      meta_data,
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer: customer.id,
+      success_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/cancel?session_id={CHECKOUT_SESSION_ID}&order_id=${order?.id}`,
+      metadata: {
+        wooOrderId: order?.id.toString(), // Ensure it's a string
+      },
+      line_items: [
+        {
+          price_data: {
+            currency: order?.currency,
+            product_data: {
+              name: `Order #${order?.id}`,
+            },
+            unit_amount: Math.round(order?.total * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      payment_intent_data: {
+        metadata: {
+          wooOrderId: order?.id.toString(), // Sync metadata with PaymentIntent
+        },
+      },
     });
 
-    const order = orderResponse.data;
-
-    console.log("Order Created:", order);
-
-    // 4️⃣ Generate WooCommerce Payment URL
-    const paymentUrl = `${order.payment_url}`;
-
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.log(error);
     return NextResponse.json(
-      { checkoutUrl: paymentUrl, orderId: order?.id },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error(
-      "Error processing checkout:",
-      error.response?.data || error.message
-    );
-    return NextResponse.json(
-      { error: "Failed to process checkout" },
+      { error: (error as any).message },
       { status: 500 }
     );
   }

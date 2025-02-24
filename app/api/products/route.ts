@@ -15,18 +15,19 @@ export async function GET(req: NextRequest) {
     success: boolean;
     products: ProductType[];
     error: string;
-  } = {
+  } = {  
     success: false,
     products: [],
     error: "",
   };
 
   const { searchParams } = new URL(req.url);
-  const perPage = searchParams.get("per_page") || "8";
+  const perPage = searchParams.get("per_page") || "10";
   const page = searchParams.get("page") || "1";
   const featured = searchParams.get("feature");
   const recent = searchParams.get("recent");
   const onSale = searchParams.get("on_sale");
+  const category = searchParams.get("category");
 
   try {
     const params: Record<string, any> = {
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
     if (featured) params.featured = featured === "true";
     if (onSale) params.on_sale = onSale === "true";
     if (recent) params.orderby = "date"; // Fetch most recent products
+    if (category) params.category = category;
 
     const { data: products } = await api.get("products", params);
 

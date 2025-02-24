@@ -26,7 +26,7 @@ export async function GET() {
 
     const data = await response.json();
 
-    return NextResponse.json({ primary_color: data.primary_color });
+    return NextResponse.json({ primary_color: data.colors.primary_color });
   } catch (error) {
     console.log("color error", error);
     return NextResponse.json(

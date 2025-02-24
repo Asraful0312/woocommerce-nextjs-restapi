@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
-import ReactQueryProvider from "@/components/ReactQueryProvider";
 import { Toaster } from "sonner";
 import { getSiteInfo } from "@/lib/wp";
 import { Providers } from "@/components/provider/Provider";
@@ -37,6 +36,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
+    metadataBase: new URL(`${process.env.NEXT_PUBLIC_FRONTEND_URL}`),
+    keywords: [site?.title, "e-commerce", "shop"],
     title: site?.title || defaultMetadata.title,
     description: site?.description || defaultMetadata.description,
     icons: site?.siteIcon || defaultMetadata.icons, // Use siteIcon or fallback to default favicon
@@ -66,12 +67,10 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <ReactQueryProvider>
-            <Header logo={site?.logo} />
-            {children}
-            <Footer />
-            <Toaster richColors />
-          </ReactQueryProvider>
+          <Header logo={site?.logo} />
+          {children}
+          <Footer />
+          <Toaster richColors />
         </Providers>
       </body>
     </html>

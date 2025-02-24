@@ -8,3 +8,14 @@ const api = new WooCommerceRestApi({
 });
 
 export default api;
+
+export const createWooOrder = async (orderData: any) => {
+  const response = await api.post("/orders", orderData);
+  return response.data;
+};
+
+// Update WooCommerce Order
+export const updateWooOrder = async (orderId: number, updateData: any) => {
+  const response = await api.put(`/orders/${orderId}`, updateData);
+  return response.data;
+};

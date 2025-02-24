@@ -11,19 +11,19 @@ import { motion } from "framer-motion";
 
 interface OrderTrackingProps {
   currentStatus:
-    | "placed"
-    | "confirmed"
+    | "pending"
+    | "processing"
     | "preparation"
     | "delivery"
     | "complete";
 }
 
 export default function OrderTracking({
-  currentStatus = "confirmed",
+  currentStatus = "pending",
 }: OrderTrackingProps) {
   const steps = [
-    { id: "placed", title: "Order Placed", icon: ClipboardCheck },
-    { id: "confirmed", title: "Order confirmation", icon: CheckCheck },
+    { id: "pending", title: "Pending", icon: ClipboardCheck },
+    { id: "processing", title: "Processing", icon: CheckCheck },
     { id: "preparation", title: "Preparation", icon: Pizza },
     { id: "delivery", title: "Out for delivery", icon: Truck },
     { id: "complete", title: "Complete", icon: SmileIcon },
@@ -66,6 +66,7 @@ export default function OrderTracking({
         <div className="relative flex justify-between">
           {steps.map((step, index) => {
             const status = getStatus(step.id);
+            console.log(step.title);
             return (
               <motion.div
                 key={step.id}

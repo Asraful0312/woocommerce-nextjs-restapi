@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,6 +21,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import Image from "next/image";
+import { sanitize } from "@/lib/utils";
 
 type LoginFormInputs = {
   email: string;
@@ -105,7 +105,12 @@ export default function LoginForm() {
                 })}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p
+                  className="text-red-500 text-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitize(errors.email.message),
+                  }}
+                />
               )}
             </div>
             <div className="space-y-2">
@@ -172,24 +177,21 @@ export default function LoginForm() {
               />
               {loading ? "Loading..." : "Google Login"}
             </Button>
+            <p className="text-sm text-center w-full">
+              Don’t have an account?{" "}
+              <Link href="/register" className="text-blue-500 hover:underline">
+                Register
+              </Link>
+            </p>
           </form>
-
           {/* redirect ui */}
           {redirect && (
-            <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center">
+            <div className="absolute gap-2 inset-0 bg-white/80 flex items-center justify-center z-50">
               <Loader2 className="size-4 animate-spin shrink-0" />
               <p className="text-sm text-center">Redirecting to home page</p>
             </div>
           )}
         </CardContent>
-        <CardFooter>
-          <p className="text-sm text-center w-full">
-            Don’t have an account?{" "}
-            <Link href="/register" className="text-blue-500 hover:underline">
-              Register
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

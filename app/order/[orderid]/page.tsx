@@ -43,7 +43,16 @@ const SingleOrder = ({ params }: Props) => {
   const downloadInvoice = async () => {
     if (!invoiceRef.current) return;
 
+    // Temporarily apply a fixed width for consistent rendering
+    const originalStyle = invoiceRef.current.style.cssText;
+    invoiceRef.current.style.width = "994px"; // A4 width in pixels at 96 DPI
+    invoiceRef.current.style.padding = "20px"; // Ensure proper spacing
+
     const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
+
+    // Restore the original styles
+    invoiceRef.current.style.cssText = originalStyle;
+
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
     const imgWidth = 210;
@@ -67,7 +76,8 @@ const SingleOrder = ({ params }: Props) => {
           </p>
         </div>
       )}
-      <OrderTracking currentStatus="complete" />
+
+      <OrderTracking currentStatus={order?.status || "pending"} />
 
       <div className="flex flex-wrap justify-between gap-2">
         <h1 className="text-3xl font-bold mb-6">Order Details #{order?.id}</h1>
@@ -110,7 +120,11 @@ const SingleOrder = ({ params }: Props) => {
                 </div>
                 <Badge
                   variant={
-                    order?.status === "pending" ? "secondary" : "default"
+                    order?.status === "pending"
+                      ? "secondary"
+                      : order?.status === "failed"
+                      ? "destructive"
+                      : "default"
                   }
                 >
                   {order?.status.toUpperCase()}
