@@ -9,7 +9,7 @@ const Logo = ({ logo }: { logo?: string }) => {
           <Image
             width={150}
             height={50}
-            className="shrink-0 object-cover h-[50px] max-w-[100px] md:max-w-[150px]"
+            className="shrink-0 object-contain h-[50px] max-w-[100px] md:max-w-[150px]"
             src={logo}
             alt="logo"
           />

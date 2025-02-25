@@ -90,9 +90,9 @@ const SearchBar = () => {
           className="shrink-0"
         />
         <div>
-          <Link className="line-clamp-2" href={``}>
+          <h2 className="line-clamp-2">
             {getHighlightedText(product?.name, debounced)}
-          </Link>
+          </h2>
           <p className="text-sm">
             <span
               dangerouslySetInnerHTML={{
